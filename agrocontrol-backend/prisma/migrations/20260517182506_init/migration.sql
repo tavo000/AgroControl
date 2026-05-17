@@ -1,0 +1,15 @@
+-- CreateTable
+CREATE TABLE "Machine" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "lat" DOUBLE PRECISION NOT NULL,
+    "lng" DOUBLE PRECISION NOT NULL,
+    "fuel" DOUBLE PRECISION NOT NULL,
+    "temperature" DOUBLE PRECISION NOT NULL,
+    "speed" DOUBLE PRECISION NOT NULL,
+    "active" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Machine_pkey" PRIMARY KEY ("id")
+);

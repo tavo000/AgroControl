@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Machine {
+  id          Int      @id @default(autoincrement())
+  name        String
+  lat         Float
+  lng         Float
+  fuel        Float
+  temperature Float
+  speed       Float
+  active      Boolean
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Telemetry {
+  id          Int      @id @default(autoincrement())
+  machineName String
+  fuel        Float
+  temperature Float
+  speed       Float
+  lat         Float
+  lng         Float
+  active      Boolean
+  createdAt   DateTime @default(now())
+}

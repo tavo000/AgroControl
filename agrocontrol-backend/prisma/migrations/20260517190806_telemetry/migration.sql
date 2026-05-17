@@ -1,0 +1,14 @@
+-- CreateTable
+CREATE TABLE "Telemetry" (
+    "id" SERIAL NOT NULL,
+    "machineName" TEXT NOT NULL,
+    "fuel" DOUBLE PRECISION NOT NULL,
+    "temperature" DOUBLE PRECISION NOT NULL,
+    "speed" DOUBLE PRECISION NOT NULL,
+    "lat" DOUBLE PRECISION NOT NULL,
+    "lng" DOUBLE PRECISION NOT NULL,
+    "active" BOOLEAN NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Telemetry_pkey" PRIMARY KEY ("id")
+);

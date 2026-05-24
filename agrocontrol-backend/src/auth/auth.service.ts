@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
+import { JwtService } from '@nestjs/jwt';
+
 import { PrismaService } from '../prisma/prisma.service';
 
 import * as bcrypt from 'bcrypt';
@@ -11,6 +13,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private prisma: PrismaService,
+    private jwtService: JwtService,
   ) {}
 
   async register(data: {
@@ -18,26 +21,24 @@ export class AuthService {
     email: string;
     password: string;
   }) {
-    const hashedPassword =
-      await bcrypt.hash(
-        data.password,
-        10,
-      );
+    const hashedPassword = await bcrypt.hash(
+      data.password,
+      10,
+    );
 
-    const user =
-      await this.prisma.user.create({
-        data: {
-          name: data.name,
-          email: data.email,
-          password:
-            hashedPassword,
-        },
-      });
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+      },
+    });
 
     return {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
     };
   }
 
@@ -70,9 +71,20 @@ export class AuthService {
       );
     }
 
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken =
+      await this.jwtService.signAsync(
+        payload,
+      );
+
     return {
       message: 'Login correcto',
-
+      access_token: accessToken,
       user: {
         id: user.id,
         name: user.name,

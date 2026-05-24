@@ -6,18 +6,27 @@ import { socket } from "../services/socket";
 
 interface IoTStore {
   machines: MachineData[];
+
+  setMachines: (
+    machines: MachineData[],
+  ) => void;
 }
 
 export const useIoTStore =
-  create<IoTStore>(() => ({
+  create<IoTStore>((set) => ({
     machines: [],
+
+    setMachines: (machines) =>
+      set({
+        machines,
+      }),
   }));
 
 socket.on(
   "machines-update",
   (machines: MachineData[]) => {
-    useIoTStore.setState({
-      machines,
-    });
-  }
+    useIoTStore
+      .getState()
+      .setMachines(machines);
+  },
 );

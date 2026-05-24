@@ -1,7 +1,7 @@
 export interface MachineData {
   id: number;
 
-  machineName: string;
+  name: string;
 
   lat: number;
 

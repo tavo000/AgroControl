@@ -10,6 +10,7 @@ import { IotModule } from './iot/iot.module';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { MachinesModule } from './machines/machines.module';
 
 @Module({
   imports: [
@@ -22,6 +23,8 @@ import { AuthModule } from './auth/auth.module';
     IotModule,
 
     AuthModule,
+
+    MachinesModule,
   ],
 
   controllers: [AppController],

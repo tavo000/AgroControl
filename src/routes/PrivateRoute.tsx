@@ -1,4 +1,4 @@
-import Login from "../pages/Login";
+import { Navigate } from "react-router-dom";
 
 import { useAuthStore } from "../store/authStore";
 
@@ -16,7 +16,9 @@ export default function PrivateRoute({
     );
 
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Navigate to="/login" />
+    );
   }
 
   return <>{children}</>;

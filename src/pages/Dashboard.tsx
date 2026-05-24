@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import KpiCard from "../components/dashboard/KpiCard";
 
 import ProductionChart from "../components/charts/ProductionChart";
@@ -12,8 +14,39 @@ import TelemetryChart from "../components/charts/TelemetryChart";
 
 import { useIoTStore } from "../store/iotStore";
 
+import { getMachines } from "../services/machineService";
+
+interface Machine {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  fuel: number;
+  temperature: number;
+  speed: number;
+  active: boolean;
+}
+
 export default function Dashboard() {
   const { machines } = useIoTStore();
+
+  const [realMachines, setRealMachines] =
+    useState<Machine[]>([]);
+
+  useEffect(() => {
+    loadMachines();
+  }, []);
+
+  const loadMachines = async () => {
+    try {
+      const data =
+        await getMachines();
+
+      setRealMachines(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -40,7 +73,14 @@ export default function Dashboard() {
 
         <KpiCard
           title="Maquinaria Activa"
-          value="18"
+          value={
+            realMachines
+              .filter(
+                (machine) =>
+                  machine.active,
+              )
+              .length.toString()
+          }
         />
 
         <KpiCard
@@ -51,10 +91,17 @@ export default function Dashboard() {
 
       <TelemetryChart data={machines} />
 
-      <div className="grid grid-cols-3 gap-6">
+      <div
+        className="
+          grid
+          grid-cols-1
+          xl:grid-cols-3
+          gap-6
+        "
+      >
         <div
           className="
-            col-span-2
+            xl:col-span-2
             bg-slate-900
             border
             border-slate-800
@@ -85,10 +132,93 @@ export default function Dashboard() {
           </h2>
 
           <div className="h-[300px] mb-4">
-            <FarmMap />
+            <FarmMap machines={realMachines} />
           </div>
 
           <MachineTelemetry />
+        </div>
+      </div>
+
+      <div
+        className="
+          bg-slate-900
+          border
+          border-slate-800
+          rounded-2xl
+          p-6
+        "
+      >
+        <h2 className="text-xl font-semibold mb-6">
+          Maquinaria Registrada
+        </h2>
+
+        <div className="space-y-4">
+          {realMachines.map(
+            (machine) => (
+              <div
+                key={machine.id}
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  bg-slate-950
+                  border
+                  border-slate-800
+                  rounded-xl
+                  p-4
+                "
+              >
+                <div>
+                  <h3 className="font-semibold">
+                    {machine.name}
+                  </h3>
+
+                  <p className="text-sm text-slate-400">
+                    Velocidad:
+                    {" "}
+                    {machine.speed}
+                    {" "}
+                    km/h
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    flex
+                    items-center
+                    gap-4
+                    text-sm
+                  "
+                >
+                  <span>
+                    ⛽
+                    {" "}
+                    {machine.fuel}
+                    %
+                  </span>
+
+                  <span>
+                    🌡️
+                    {" "}
+                    {machine.temperature}
+                    °C
+                  </span>
+
+                  <span
+                    className={
+                      machine.active
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }
+                  >
+                    {machine.active
+                      ? "Activa"
+                      : "Inactiva"}
+                  </span>
+                </div>
+              </div>
+            ),
+          )}
         </div>
       </div>
 

@@ -28,7 +28,7 @@ export default function TelemetryChart({
         <ResponsiveContainer
           width="99%"
           height={260}
-      >
+        >
           <LineChart
             data={data}
             margin={{
@@ -43,7 +43,7 @@ export default function TelemetryChart({
               stroke="#3f3f46"
             />
 
-            <XAxis hide />
+            <XAxis dataKey="name" hide />
 
             <YAxis
               stroke="#a1a1aa"

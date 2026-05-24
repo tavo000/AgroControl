@@ -1,10 +1,14 @@
 import { useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import { loginRequest } from "../services/authService";
 
 import { useAuthStore } from "../store/authStore";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const login = useAuthStore(
     (state) => state.login,
   );
@@ -35,6 +39,10 @@ export default function Login() {
         data.user,
         data.access_token,
       );
+
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch {
       setError(
         "Email o contraseña incorrectos",

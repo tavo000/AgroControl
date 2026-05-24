@@ -20,11 +20,22 @@ interface AuthState {
   logout: () => void;
 }
 
+const storedToken =
+  localStorage.getItem("agrocontrol_token");
+
+const storedUser =
+  localStorage.getItem("agrocontrol_user");
+
 export const useAuthStore =
   create<AuthState>((set) => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
+    user: storedUser
+      ? JSON.parse(storedUser)
+      : null,
+
+    token: storedToken,
+
+    isAuthenticated:
+      Boolean(storedToken && storedUser),
 
     login: (user, token) => {
       localStorage.setItem(

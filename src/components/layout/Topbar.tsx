@@ -2,12 +2,23 @@ import {
   Bell,
   Search,
   Menu,
+  LogOut,
 } from "lucide-react";
 
 import { useUiStore } from "../../store/uiStore";
 
+import { useAuthStore } from "../../store/authStore";
+
 export default function Topbar() {
   const { toggleSidebar } = useUiStore();
+
+  const logout = useAuthStore(
+    (state) => state.logout,
+  );
+
+  const user = useAuthStore(
+    (state) => state.user,
+  );
 
   return (
     <header
@@ -72,14 +83,28 @@ export default function Topbar() {
           <Bell />
         </button>
 
-        <div
+        <div className="text-right">
+          <p className="text-sm font-semibold">
+            {user?.name}
+          </p>
+
+          <p className="text-xs text-slate-400">
+            {user?.role}
+          </p>
+        </div>
+
+        <button
+          onClick={logout}
           className="
-            w-10
-            h-10
-            rounded-full
-            bg-emerald-500
+            p-2
+            rounded-lg
+            bg-red-500
+            hover:bg-red-400
+            transition
           "
-        />
+        >
+          <LogOut size={18} />
+        </button>
       </div>
     </header>
   );

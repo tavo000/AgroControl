@@ -1,19 +1,11 @@
 import Dashboard from "./pages/Dashboard";
 
-import Login from "./pages/Login";
-
-import { useAuthStore } from "./store/authStore";
+import PrivateRoute from "./routes/PrivateRoute";
 
 export default function App() {
-  const isAuthenticated =
-    useAuthStore(
-      (state: any) =>
-        state.isAuthenticated,
-    );
-
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-
-  return <Dashboard />;
+  return (
+    <PrivateRoute>
+      <Dashboard />
+    </PrivateRoute>
+  );
 }

@@ -1,20 +1,62 @@
-export async function getMachines() {
+function getAuthHeaders() {
   const token = localStorage.getItem(
     "agrocontrol_token",
   );
 
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export async function getMachines() {
   const response = await fetch(
     "http://localhost:4000/machines",
     {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     },
   );
 
   if (!response.ok) {
     throw new Error(
       "Error al obtener maquinaria",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getAlerts() {
+  const response = await fetch(
+    "http://localhost:4000/alerts",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener alertas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function resolveAlert(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/alerts/${id}/resolve`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al resolver alerta",
     );
   }
 

@@ -13,6 +13,20 @@ enum UserRole {
   OPERATOR
 }
 
+enum AlertType {
+  LOW_FUEL
+  HIGH_TEMPERATURE
+  HIGH_SPEED
+  OFFLINE
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -47,4 +61,14 @@ model Telemetry {
   lng         Float
   active      Boolean
   createdAt   DateTime @default(now())
+}
+
+model Alert {
+  id          Int           @id @default(autoincrement())
+  machineName String
+  type        AlertType
+  severity    AlertSeverity
+  message     String
+  resolved    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
 }

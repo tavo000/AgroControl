@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import KpiCard from "../components/dashboard/KpiCard";
 
@@ -14,7 +14,13 @@ import TelemetryChart from "../components/charts/TelemetryChart";
 
 import { useIoTStore } from "../store/iotStore";
 
-import { getMachines } from "../services/machineService";
+import {
+  getMachines,
+  getAlerts,
+  resolveAlert,
+} from "../services/machineService";
+
+import type { Alert } from "../types/alert";
 
 interface Machine {
   id: number;
@@ -33,8 +39,12 @@ export default function Dashboard() {
   const [realMachines, setRealMachines] =
     useState<Machine[]>([]);
 
+  const [savedAlerts, setSavedAlerts] =
+    useState<Alert[]>([]);
+
   useEffect(() => {
     loadMachines();
+    loadAlerts();
   }, []);
 
   const loadMachines = async () => {
@@ -47,6 +57,57 @@ export default function Dashboard() {
       console.error(error);
     }
   };
+
+  const loadAlerts = async () => {
+    try {
+      const data =
+        await getAlerts();
+
+      setSavedAlerts(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleResolveAlert =
+    async (id: number) => {
+      try {
+        await resolveAlert(id);
+
+        loadAlerts();
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+  const realtimeAlerts = useMemo(() => {
+    const machineAlerts: string[] = [];
+
+    machines.forEach((machine) => {
+      if (machine.fuel < 25) {
+        machineAlerts.push(
+          `${machine.name}: combustible bajo`,
+        );
+      }
+
+      if (machine.temperature > 75) {
+        machineAlerts.push(
+          `${machine.name}: temperatura elevada`,
+        );
+      }
+
+      if (
+        machine.active &&
+        machine.speed > 40
+      ) {
+        machineAlerts.push(
+          `${machine.name}: velocidad excesiva`,
+        );
+      }
+    });
+
+    return machineAlerts;
+  }, [machines]);
 
   return (
     <div className="space-y-6">
@@ -85,9 +146,136 @@ export default function Dashboard() {
 
         <KpiCard
           title="Alertas"
-          value="7"
+          value={savedAlerts
+            .filter(
+              (alert) =>
+                !alert.resolved,
+            )
+            .length.toString()}
         />
       </div>
+
+      {realtimeAlerts.length > 0 && (
+        <div
+          className="
+            bg-red-500/10
+            border
+            border-red-500/30
+            rounded-2xl
+            p-6
+          "
+        >
+          <h2 className="text-lg font-semibold text-red-300 mb-4">
+            Alertas IoT en tiempo real
+          </h2>
+
+          <div className="space-y-2">
+            {realtimeAlerts.map(
+              (alert, index) => (
+                <div
+                  key={index}
+                  className="
+                    text-sm
+                    text-red-200
+                    bg-red-500/5
+                    rounded-lg
+                    p-3
+                  "
+                >
+                  {alert}
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      )}
+
+      {savedAlerts.length > 0 && (
+        <div
+          className="
+            bg-slate-900
+            border
+            border-slate-800
+            rounded-2xl
+            p-6
+          "
+        >
+          <h2 className="text-xl font-semibold mb-6">
+            Historial de Alertas
+          </h2>
+
+          <div className="space-y-3">
+            {savedAlerts.map(
+              (alert) => (
+                <div
+                  key={alert.id}
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    bg-slate-950
+                    border
+                    border-slate-800
+                    rounded-xl
+                    p-4
+                  "
+                >
+                  <div>
+                    <h3 className="font-semibold">
+                      {alert.machineName}
+                    </h3>
+
+                    <p className="text-sm text-slate-400">
+                      {alert.message}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p
+                      className={
+                        alert.resolved
+                          ? "text-emerald-400 text-sm"
+                          : "text-red-400 text-sm"
+                      }
+                    >
+                      {alert.resolved
+                        ? "Resuelta"
+                        : "Activa"}
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1 mb-3">
+                      {alert.severity}
+                    </p>
+
+                    {!alert.resolved && (
+                      <button
+                        onClick={() =>
+                          handleResolveAlert(
+                            alert.id,
+                          )
+                        }
+                        className="
+                          px-3
+                          py-1
+                          rounded-lg
+                          bg-emerald-500
+                          hover:bg-emerald-400
+                          text-slate-950
+                          text-xs
+                          font-semibold
+                          transition
+                        "
+                      >
+                        Resolver
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+      )}
 
       <TelemetryChart data={machines} />
 

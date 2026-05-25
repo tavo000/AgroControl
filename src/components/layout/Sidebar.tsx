@@ -7,6 +7,8 @@ import {
   BarChart3,
 } from "lucide-react";
 
+import { NavLink } from "react-router-dom";
+
 import { motion } from "framer-motion";
 
 import { useUiStore } from "../../store/uiStore";
@@ -15,26 +17,32 @@ const items = [
   {
     label: "Dashboard",
     icon: LayoutDashboard,
+    path: "/dashboard",
   },
   {
     label: "Maquinaria",
     icon: Tractor,
+    path: "/machines",
   },
   {
     label: "Mapas",
     icon: Map,
+    path: "/maps",
   },
   {
     label: "Analítica",
     icon: BarChart3,
+    path: "/telemetry",
   },
   {
     label: "Alertas",
     icon: Bell,
+    path: "/alerts",
   },
   {
     label: "Configuración",
     icon: Settings,
+    path: "/settings",
   },
 ];
 
@@ -66,27 +74,34 @@ export default function Sidebar() {
 
       <nav className="px-4">
         {items.map((item) => (
-          <button
+          <NavLink
             key={item.label}
-            className="
-              w-full
-              flex
-              items-center
-              gap-3
-              px-4
-              py-3
-              rounded-xl
-              hover:bg-slate-800
-              transition
-              mb-2
-            "
+            to={item.path}
+            className={({ isActive }) =>
+              `
+                w-full
+                flex
+                items-center
+                gap-3
+                px-4
+                py-3
+                rounded-xl
+                transition
+                mb-2
+                ${
+                  isActive
+                    ? "bg-emerald-500 text-slate-950"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }
+              `
+            }
           >
             <item.icon size={20} />
 
             {sidebarOpen && (
               <span>{item.label}</span>
             )}
-          </button>
+          </NavLink>
         ))}
       </nav>
     </motion.aside>

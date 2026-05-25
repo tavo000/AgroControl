@@ -9,6 +9,8 @@ import Dashboard from "../pages/Dashboard";
 
 import Alerts from "../pages/Alerts";
 
+import Machines from "../pages/Machines";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -19,27 +21,41 @@ export const router =
       path: "/login",
       element: <Login />,
     },
+
     {
       path: "/",
+
       element: (
         <PrivateRoute>
           <MainLayout />
         </PrivateRoute>
       ),
+
       children: [
         {
           index: true,
+
           element: (
             <Navigate to="/dashboard" />
           ),
         },
+
         {
           path: "/dashboard",
+
           element: <Dashboard />,
         },
+
         {
           path: "/alerts",
+
           element: <Alerts />,
+        },
+
+        {
+          path: "/machines",
+
+          element: <Machines />,
         },
       ],
     },

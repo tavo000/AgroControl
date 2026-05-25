@@ -9,6 +9,16 @@ function getAuthHeaders() {
   };
 }
 
+interface CreateMachinePayload {
+  name: string;
+  lat: number;
+  lng: number;
+  fuel: number;
+  temperature: number;
+  speed: number;
+  active: boolean;
+}
+
 export async function getMachines() {
   const response = await fetch(
     "http://localhost:4000/machines",
@@ -20,6 +30,47 @@ export async function getMachines() {
   if (!response.ok) {
     throw new Error(
       "Error al obtener maquinaria",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createMachine(
+  payload: CreateMachinePayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/machines",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear maquinaria",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteMachine(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/machines/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar maquinaria",
     );
   }
 

@@ -1,3 +1,5 @@
+import type { TelemetryData } from "../types/telemetry";
+
 function getAuthHeaders() {
   const token = localStorage.getItem(
     "agrocontrol_token",
@@ -108,6 +110,44 @@ export async function resolveAlert(
   if (!response.ok) {
     throw new Error(
       "Error al resolver alerta",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getTelemetry(): Promise<
+  TelemetryData[]
+> {
+  const response = await fetch(
+    "http://localhost:4000/telemetry",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener telemetría",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getTelemetryByMachine(
+  machineName: string,
+): Promise<TelemetryData[]> {
+  const response = await fetch(
+    `http://localhost:4000/telemetry/${machineName}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener historial de telemetría",
     );
   }
 

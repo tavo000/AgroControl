@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { MachinesModule } from './machines/machines.module';
 import { AlertsModule } from './alerts/alerts.module';
+import { TelemetryModule } from './telemetry/telemetry.module';
 
 @Module({
   imports: [
@@ -28,6 +29,8 @@ import { AlertsModule } from './alerts/alerts.module';
     MachinesModule,
 
     AlertsModule,
+
+    TelemetryModule,
   ],
 
   controllers: [AppController],

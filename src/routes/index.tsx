@@ -11,6 +11,8 @@ import Alerts from "../pages/Alerts";
 
 import Machines from "../pages/Machines";
 
+import Telemetry from "../pages/Telemetry";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -19,6 +21,7 @@ export const router =
   createBrowserRouter([
     {
       path: "/login",
+
       element: <Login />,
     },
 
@@ -56,6 +59,12 @@ export const router =
           path: "/machines",
 
           element: <Machines />,
+        },
+
+        {
+          path: "/telemetry",
+
+          element: <Telemetry />,
         },
       ],
     },

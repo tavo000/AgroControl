@@ -1,30 +1,25 @@
 import { useEffect, useState } from "react";
 
 import {
-  getMachines,
   createMachine,
   deleteMachine,
 } from "../services/machineService";
 
 import { useIoTStore } from "../store/iotStore";
 
-interface Machine {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  fuel: number;
-  temperature: number;
-  speed: number;
-  active: boolean;
-}
-
 export default function Machines() {
-  const [machines, setMachines] =
-    useState<Machine[]>([]);
-
   const [name, setName] =
     useState("");
+
+  const machines = useIoTStore(
+    (state) => state.machines,
+  );
+
+  const loadInitialMachines =
+  useIoTStore(
+    (state) =>
+      state.loadInitialMachines,
+  );
 
   const sendMachineCommand =
     useIoTStore(
@@ -33,13 +28,9 @@ export default function Machines() {
     );
 
   useEffect(() => {
-    loadMachines();
+    loadInitialMachines();
   }, []);
 
-  const loadMachines = async () => {
-    const data = await getMachines();
-    setMachines(data);
-  };
 
   const handleCreateMachine =
     async () => {
@@ -57,13 +48,13 @@ export default function Machines() {
 
       setName("");
 
-      loadMachines();
+      await loadInitialMachines();
     };
 
   const handleDeleteMachine =
     async (id: number) => {
       await deleteMachine(id);
-      loadMachines();
+      await loadInitialMachines();
     };
 
   const handleToggleMachine =
@@ -75,10 +66,6 @@ export default function Machines() {
         id,
         !active,
       );
-
-      setTimeout(() => {
-        loadMachines();
-      }, 500);
     };
 
   return (
@@ -191,30 +178,23 @@ export default function Machines() {
 
             <div className="mt-4 space-y-2 text-sm">
               <p>
-                ⛽ Combustible:
-                {" "}
+                ⛽ Combustible:{" "}
                 {machine.fuel.toFixed(0)}%
               </p>
 
               <p>
-                🌡️ Temperatura:
-                {" "}
+                🌡️ Temperatura:{" "}
                 {machine.temperature.toFixed(0)}
                 °C
               </p>
 
               <p>
-                ⚙️ Velocidad:
-                {" "}
-                {machine.speed.toFixed(0)}
-                {" "}
-                km/h
+                ⚙️ Velocidad:{" "}
+                {machine.speed.toFixed(0)} km/h
               </p>
 
               <p>
-                Estado:
-                {" "}
-
+                Estado:{" "}
                 <span
                   className={
                     machine.active

@@ -15,48 +15,31 @@ import TelemetryChart from "../components/charts/TelemetryChart";
 import { useIoTStore } from "../store/iotStore";
 
 import {
-  getMachines,
   getAlerts,
   resolveAlert,
 } from "../services/machineService";
 
 import type { Alert } from "../types/alert";
 
-interface Machine {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  fuel: number;
-  temperature: number;
-  speed: number;
-  active: boolean;
-}
-
 export default function Dashboard() {
-  const { machines } = useIoTStore();
+  const machines = useIoTStore(
+  (state) => state.machines,
+);
 
-  const [realMachines, setRealMachines] =
-    useState<Machine[]>([]);
+const loadInitialMachines =
+  useIoTStore(
+    (state) =>
+      state.loadInitialMachines,
+  );
 
   const [savedAlerts, setSavedAlerts] =
     useState<Alert[]>([]);
 
   useEffect(() => {
-    loadMachines();
-    loadAlerts();
-  }, []);
+  loadAlerts();
 
-  const loadMachines = async () => {
-    try {
-      const data =
-        await getMachines();
-
-      setRealMachines(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  loadInitialMachines();
+}, []);
 
   const loadAlerts = async () => {
     try {
@@ -109,6 +92,22 @@ export default function Dashboard() {
     return machineAlerts;
   }, [machines]);
 
+  const activeMachines =
+    machines.filter(
+      (machine) => machine.active,
+    ).length;
+
+  const averageFuel =
+    machines.length > 0
+      ? (
+          machines.reduce(
+            (acc, machine) =>
+              acc + machine.fuel,
+            0,
+          ) / machines.length
+        ).toFixed(0)
+      : "0";
+
   return (
     <div className="space-y-6">
       <div>
@@ -121,27 +120,20 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <KpiCard
           title="Producción"
           value="1.240 tn"
         />
 
         <KpiCard
-          title="Combustible"
-          value="12.500 L"
+          title="Combustible Promedio"
+          value={`${averageFuel}%`}
         />
 
         <KpiCard
           title="Maquinaria Activa"
-          value={
-            realMachines
-              .filter(
-                (machine) =>
-                  machine.active,
-              )
-              .length.toString()
-          }
+          value={activeMachines.toString()}
         />
 
         <KpiCard
@@ -320,7 +312,7 @@ export default function Dashboard() {
           </h2>
 
           <div className="h-[300px] mb-4">
-            <FarmMap machines={realMachines} />
+            <FarmMap />
           </div>
 
           <MachineTelemetry />
@@ -341,72 +333,70 @@ export default function Dashboard() {
         </h2>
 
         <div className="space-y-4">
-          {realMachines.map(
-            (machine) => (
+          {machines.map((machine) => (
+            <div
+              key={machine.id}
+              className="
+                flex
+                items-center
+                justify-between
+                bg-slate-950
+                border
+                border-slate-800
+                rounded-xl
+                p-4
+              "
+            >
+              <div>
+                <h3 className="font-semibold">
+                  {machine.name}
+                </h3>
+
+                <p className="text-sm text-slate-400">
+                  Velocidad:
+                  {" "}
+                  {machine.speed.toFixed(0)}
+                  {" "}
+                  km/h
+                </p>
+              </div>
+
               <div
-                key={machine.id}
                 className="
                   flex
                   items-center
-                  justify-between
-                  bg-slate-950
-                  border
-                  border-slate-800
-                  rounded-xl
-                  p-4
+                  gap-4
+                  text-sm
                 "
               >
-                <div>
-                  <h3 className="font-semibold">
-                    {machine.name}
-                  </h3>
+                <span>
+                  ⛽
+                  {" "}
+                  {machine.fuel.toFixed(0)}
+                  %
+                </span>
 
-                  <p className="text-sm text-slate-400">
-                    Velocidad:
-                    {" "}
-                    {machine.speed}
-                    {" "}
-                    km/h
-                  </p>
-                </div>
+                <span>
+                  🌡️
+                  {" "}
+                  {machine.temperature.toFixed(0)}
+                  °C
+                </span>
 
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-4
-                    text-sm
-                  "
+                <span
+                  className={
+                    machine.active
+                      ? "text-emerald-400"
+                      : "text-red-400"
+                  }
                 >
-                  <span>
-                    ⛽
-                    {" "}
-                    {machine.fuel}
-                    %
-                  </span>
-
-                  <span>
-                    🌡️
-                    {" "}
-                    {machine.temperature}
-                    °C
-                  </span>
-
-                  <span
-                    className={
-                      machine.active
-                        ? "text-emerald-400"
-                        : "text-red-400"
-                    }
-                  >
-                    {machine.active
-                      ? "Activa"
-                      : "Inactiva"}
-                  </span>
-                </div>
+                  {machine.active
+                    ? "Activa"
+                    : "Inactiva"}
+                </span>
               </div>
-            ),
-          )}
+            </div>
+          ))}
         </div>
       </div>
 

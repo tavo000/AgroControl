@@ -6,20 +6,7 @@ import {
   Polygon,
 } from "react-leaflet";
 
-interface Machine {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  fuel: number;
-  temperature: number;
-  speed: number;
-  active: boolean;
-}
-
-interface Props {
-  machines: Machine[];
-}
+import { useIoTStore } from "../../store/iotStore";
 
 const polygon: [number, number][] = [
   [-32.95, -61.3],
@@ -28,9 +15,11 @@ const polygon: [number, number][] = [
   [-32.96, -61.31],
 ];
 
-export default function FarmMap({
-  machines,
-}: Props) {
+export default function FarmMap() {
+  const machines = useIoTStore(
+    (state) => state.machines,
+  );
+
   return (
     <MapContainer
       center={[-32.95, -61.3]}

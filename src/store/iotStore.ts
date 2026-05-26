@@ -10,6 +10,11 @@ interface IoTStore {
   setMachines: (
     machines: MachineData[],
   ) => void;
+
+  sendMachineCommand: (
+    machineId: number,
+    active: boolean,
+  ) => void;
 }
 
 export const useIoTStore =
@@ -20,6 +25,19 @@ export const useIoTStore =
       set({
         machines,
       }),
+
+    sendMachineCommand: (
+      machineId,
+      active,
+    ) => {
+      socket.emit(
+        "machine-command",
+        {
+          machineId,
+          active,
+        },
+      );
+    },
   }));
 
 socket.on(
@@ -28,5 +46,14 @@ socket.on(
     useIoTStore
       .getState()
       .setMachines(machines);
+  },
+);
+
+socket.on(
+  "machine-command-result",
+  () => {
+    console.log(
+      "Comando IoT ejecutado",
+    );
   },
 );

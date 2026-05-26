@@ -6,6 +6,8 @@ import {
   deleteMachine,
 } from "../services/machineService";
 
+import { useIoTStore } from "../store/iotStore";
+
 interface Machine {
   id: number;
   name: string;
@@ -23,6 +25,12 @@ export default function Machines() {
 
   const [name, setName] =
     useState("");
+
+  const sendMachineCommand =
+    useIoTStore(
+      (state) =>
+        state.sendMachineCommand,
+    );
 
   useEffect(() => {
     loadMachines();
@@ -56,6 +64,21 @@ export default function Machines() {
     async (id: number) => {
       await deleteMachine(id);
       loadMachines();
+    };
+
+  const handleToggleMachine =
+    (
+      id: number,
+      active: boolean,
+    ) => {
+      sendMachineCommand(
+        id,
+        !active,
+      );
+
+      setTimeout(() => {
+        loadMachines();
+      }, 500);
     };
 
   return (
@@ -170,19 +193,22 @@ export default function Machines() {
               <p>
                 ⛽ Combustible:
                 {" "}
-                {machine.fuel}%
+                {machine.fuel.toFixed(0)}%
               </p>
 
               <p>
                 🌡️ Temperatura:
                 {" "}
-                {machine.temperature}°C
+                {machine.temperature.toFixed(0)}
+                °C
               </p>
 
               <p>
                 ⚙️ Velocidad:
                 {" "}
-                {machine.speed} km/h
+                {machine.speed.toFixed(0)}
+                {" "}
+                km/h
               </p>
 
               <p>
@@ -202,6 +228,44 @@ export default function Machines() {
                 </span>
               </p>
             </div>
+
+            <button
+              onClick={() =>
+                handleToggleMachine(
+                  machine.id,
+                  machine.active,
+                )
+              }
+              className={
+                machine.active
+                  ? `
+                    mt-5
+                    w-full
+                    rounded-xl
+                    bg-yellow-500
+                    hover:bg-yellow-400
+                    text-slate-950
+                    font-semibold
+                    py-3
+                    transition
+                  `
+                  : `
+                    mt-5
+                    w-full
+                    rounded-xl
+                    bg-emerald-500
+                    hover:bg-emerald-400
+                    text-slate-950
+                    font-semibold
+                    py-3
+                    transition
+                  `
+              }
+            >
+              {machine.active
+                ? "Desactivar"
+                : "Activar"}
+            </button>
           </div>
         ))}
       </div>

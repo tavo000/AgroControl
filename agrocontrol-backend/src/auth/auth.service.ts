@@ -20,6 +20,7 @@ export class AuthService {
     name: string;
     email: string;
     password: string;
+    tenantId?: number;
   }) {
     const hashedPassword = await bcrypt.hash(
       data.password,
@@ -31,11 +32,13 @@ export class AuthService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
+        tenantId: data.tenantId ?? 1,
       },
     });
 
     return {
       id: user.id,
+      tenantId: user.tenantId,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -51,11 +54,26 @@ export class AuthService {
         where: {
           email: data.email,
         },
+        include: {
+          tenant: true,
+        },
       });
 
     if (!user) {
       throw new UnauthorizedException(
         'Usuario no encontrado',
+      );
+    }
+
+    if (!user.active) {
+      throw new UnauthorizedException(
+        'Usuario inactivo',
+      );
+    }
+
+    if (!user.tenant.active) {
+      throw new UnauthorizedException(
+        'Empresa inactiva',
       );
     }
 
@@ -73,6 +91,8 @@ export class AuthService {
 
     const payload = {
       sub: user.id,
+      userId: user.id,
+      tenantId: user.tenantId,
       email: user.email,
       role: user.role,
     };
@@ -87,6 +107,8 @@ export class AuthService {
       access_token: accessToken,
       user: {
         id: user.id,
+        tenantId: user.tenantId,
+        tenantName: user.tenant.name,
         name: user.name,
         email: user.email,
         role: user.role,

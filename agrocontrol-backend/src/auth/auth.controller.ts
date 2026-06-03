@@ -19,6 +19,7 @@ export class AuthController {
       name: string;
       email: string;
       password: string;
+      tenantId?: number;
     },
   ) {
     return this.authService.register(

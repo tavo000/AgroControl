@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { MachinesModule } from './machines/machines.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
+import { TenantsModule } from './tenants/tenants.module';
 
 @Module({
   imports: [
@@ -31,6 +32,8 @@ import { TelemetryModule } from './telemetry/telemetry.module';
     AlertsModule,
 
     TelemetryModule,
+
+    TenantsModule,
   ],
 
   controllers: [AppController],

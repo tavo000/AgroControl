@@ -8,6 +8,8 @@ import { AppService } from './app.service';
 
 import { IotModule } from './iot/iot.module';
 
+import { DashboardModule } from './dashboard/dashboard.module';
+
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { MachinesModule } from './machines/machines.module';
@@ -34,6 +36,8 @@ import { TenantsModule } from './tenants/tenants.module';
     TelemetryModule,
 
     TenantsModule,
+
+    DashboardModule,
   ],
 
   controllers: [AppController],

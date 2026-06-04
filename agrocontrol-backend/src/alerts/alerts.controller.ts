@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -21,12 +22,27 @@ export class AlertsController {
   ) {}
 
   @Get()
-  async findAll() {
-    return this.alertsService.findAll();
+  async findAll(
+    @Req() req: any,
+  ) {
+    return this.alertsService.findAll(
+      req.user.tenantId,
+    );
+  }
+
+  @Get('open')
+  async findOpen(
+    @Req() req: any,
+  ) {
+    return this.alertsService.findOpen(
+      req.user.tenantId,
+    );
   }
 
   @Post()
   async create(
+    @Req() req: any,
+
     @Body()
     body: {
       machineName: string;
@@ -44,12 +60,15 @@ export class AlertsController {
     },
   ) {
     return this.alertsService.create(
+      req.user.tenantId,
       body,
     );
   }
 
   @Patch(':id/resolve')
   async resolve(
+    @Req() req: any,
+
     @Param(
       'id',
       ParseIntPipe,
@@ -57,6 +76,7 @@ export class AlertsController {
     id: number,
   ) {
     return this.alertsService.resolve(
+      req.user.tenantId,
       id,
     );
   }

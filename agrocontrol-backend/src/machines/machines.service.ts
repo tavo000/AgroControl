@@ -8,32 +8,45 @@ export class MachinesService {
     private prisma: PrismaService,
   ) {}
 
-  async findAll() {
+  async findAll(tenantId: number) {
     return this.prisma.machine.findMany({
+      where: {
+        tenantId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
   }
 
-  async create(data: {
-    name: string;
-    lat: number;
-    lng: number;
-    fuel: number;
-    temperature: number;
-    speed: number;
-    active: boolean;
-  }) {
+  async create(
+    tenantId: number,
+    data: {
+      name: string;
+      lat: number;
+      lng: number;
+      fuel: number;
+      temperature: number;
+      speed: number;
+      active: boolean;
+    },
+  ) {
     return this.prisma.machine.create({
-      data,
+      data: {
+        ...data,
+        tenantId,
+      },
     });
   }
 
-  async remove(id: number) {
+  async remove(
+    tenantId: number,
+    id: number,
+  ) {
     return this.prisma.machine.delete({
       where: {
         id,
+        tenantId,
       },
     });
   }

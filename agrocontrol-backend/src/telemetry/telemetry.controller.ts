@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -17,16 +18,23 @@ export class TelemetryController {
   ) {}
 
   @Get()
-  async findAll() {
-    return this.telemetryService.findAll();
+  async findAll(
+    @Req() req: any,
+  ) {
+    return this.telemetryService.findAll(
+      req.user.tenantId,
+    );
   }
 
   @Get(':machineName')
   async findByMachine(
+    @Req() req: any,
+
     @Param('machineName')
     machineName: string,
   ) {
     return this.telemetryService.findByMachine(
+      req.user.tenantId,
       machineName,
     );
   }

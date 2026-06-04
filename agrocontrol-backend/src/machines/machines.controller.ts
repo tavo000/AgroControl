@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -21,12 +22,18 @@ export class MachinesController {
   ) {}
 
   @Get()
-  async findAll() {
-    return this.machinesService.findAll();
+  async findAll(
+    @Req() req: any,
+  ) {
+    return this.machinesService.findAll(
+      req.user.tenantId,
+    );
   }
 
   @Post()
   async create(
+    @Req() req: any,
+
     @Body()
     body: {
       name: string;
@@ -39,12 +46,15 @@ export class MachinesController {
     },
   ) {
     return this.machinesService.create(
+      req.user.tenantId,
       body,
     );
   }
 
   @Delete(':id')
   async remove(
+    @Req() req: any,
+
     @Param(
       'id',
       ParseIntPipe,
@@ -52,6 +62,7 @@ export class MachinesController {
     id: number,
   ) {
     return this.machinesService.remove(
+      req.user.tenantId,
       id,
     );
   }

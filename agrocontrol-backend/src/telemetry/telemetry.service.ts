@@ -8,28 +8,30 @@ export class TelemetryService {
     private prisma: PrismaService,
   ) {}
 
-  async findAll() {
+  async findAll(tenantId: number) {
     return this.prisma.telemetry.findMany({
+      where: {
+        tenantId,
+      },
       orderBy: {
         createdAt: 'desc',
       },
-
       take: 200,
     });
   }
 
   async findByMachine(
+    tenantId: number,
     machineName: string,
   ) {
     return this.prisma.telemetry.findMany({
       where: {
+        tenantId,
         machineName,
       },
-
       orderBy: {
         createdAt: 'desc',
       },
-
       take: 200,
     });
   }

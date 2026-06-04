@@ -413,3 +413,67 @@ export async function deleteHarvest(id: number) {
 
   return response.json();
 }
+
+interface CreateCampaignPayload {
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  active?: boolean;
+}
+
+export async function getCampaigns() {
+  const response = await fetch(
+    "http://localhost:4000/campaigns",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener campañas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createCampaign(
+  payload: CreateCampaignPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/campaigns",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear campaña",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteCampaign(id: number) {
+  const response = await fetch(
+    `http://localhost:4000/campaigns/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar campaña",
+    );
+  }
+
+  return response.json();
+}

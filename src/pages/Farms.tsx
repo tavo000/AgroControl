@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
 import {
+  createCampaign,
   createCrop,
   createFarm,
   createPlot,
   deleteCrop,
   deleteFarm,
   deletePlot,
+  getCampaigns,
   getCrops,
   getFarms,
   getPlots,
@@ -42,39 +44,68 @@ interface Crop {
   plot?: Plot;
 }
 
+interface Campaign {
+  id: number;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  active: boolean;
+  crops?: Crop[];
+}
+
 export default function Farms() {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [plots, setPlots] = useState<Plot[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
+  const [campaigns, setCampaigns] =
+    useState<Campaign[]>([]);
 
   const [farmName, setFarmName] = useState("");
-  const [farmLocation, setFarmLocation] = useState("");
+  const [farmLocation, setFarmLocation] =
+    useState("");
   const [farmArea, setFarmArea] = useState("");
 
-  const [plotFarmId, setPlotFarmId] = useState("");
+  const [plotFarmId, setPlotFarmId] =
+    useState("");
   const [plotName, setPlotName] = useState("");
   const [plotArea, setPlotArea] = useState("");
   const [plotCrop, setPlotCrop] = useState("");
 
-  const [cropPlotId, setCropPlotId] = useState("");
+  const [cropPlotId, setCropPlotId] =
+    useState("");
   const [cropName, setCropName] = useState("");
-  const [cropVariety, setCropVariety] = useState("");
+  const [cropVariety, setCropVariety] =
+    useState("");
+
+  const [campaignName, setCampaignName] =
+    useState("");
+  const [
+    campaignDescription,
+    setCampaignDescription,
+  ] = useState("");
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    const [farmsData, plotsData, cropsData] =
-      await Promise.all([
-        getFarms(),
-        getPlots(),
-        getCrops(),
-      ]);
+    const [
+      farmsData,
+      plotsData,
+      cropsData,
+      campaignsData,
+    ] = await Promise.all([
+      getFarms(),
+      getPlots(),
+      getCrops(),
+      getCampaigns(),
+    ]);
 
     setFarms(farmsData);
     setPlots(plotsData);
     setCrops(cropsData);
+    setCampaigns(campaignsData);
   };
 
   const handleCreateFarm = async () => {
@@ -83,7 +114,9 @@ export default function Farms() {
     await createFarm({
       name: farmName,
       location: farmLocation,
-      area: farmArea ? Number(farmArea) : undefined,
+      area: farmArea
+        ? Number(farmArea)
+        : undefined,
     });
 
     setFarmName("");
@@ -99,7 +132,9 @@ export default function Farms() {
     await createPlot({
       farmId: Number(plotFarmId),
       name: plotName,
-      area: plotArea ? Number(plotArea) : undefined,
+      area: plotArea
+        ? Number(plotArea)
+        : undefined,
       crop: plotCrop,
       status: "Activo",
       soilType: "",
@@ -131,19 +166,34 @@ export default function Farms() {
     await loadData();
   };
 
+  const handleCreateCampaign = async () => {
+    if (!campaignName.trim()) return;
+
+    await createCampaign({
+      name: campaignName,
+      description: campaignDescription,
+      active: true,
+    });
+
+    setCampaignName("");
+    setCampaignDescription("");
+
+    await loadData();
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">
-          Campos, Lotes y Cultivos
+          Campos, Lotes, Cultivos y Campañas
         </h1>
 
         <p className="text-slate-400 mt-1">
-          Gestión agrícola por empresa, campo, lote y cultivo.
+          Gestión agrícola por empresa, campo, lote, cultivo y campaña.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
           <h2 className="text-xl font-semibold">
             Nuevo campo
@@ -151,21 +201,27 @@ export default function Farms() {
 
           <input
             value={farmName}
-            onChange={(e) => setFarmName(e.target.value)}
+            onChange={(event) =>
+              setFarmName(event.target.value)
+            }
             placeholder="Nombre del campo"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
           <input
             value={farmLocation}
-            onChange={(e) => setFarmLocation(e.target.value)}
+            onChange={(event) =>
+              setFarmLocation(event.target.value)
+            }
             placeholder="Ubicación"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
           <input
             value={farmArea}
-            onChange={(e) => setFarmArea(e.target.value)}
+            onChange={(event) =>
+              setFarmArea(event.target.value)
+            }
             placeholder="Superficie total"
             type="number"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
@@ -186,13 +242,20 @@ export default function Farms() {
 
           <select
             value={plotFarmId}
-            onChange={(e) => setPlotFarmId(e.target.value)}
+            onChange={(event) =>
+              setPlotFarmId(event.target.value)
+            }
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           >
-            <option value="">Seleccionar campo</option>
+            <option value="">
+              Seleccionar campo
+            </option>
 
             {farms.map((farm) => (
-              <option key={farm.id} value={farm.id}>
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
                 {farm.name}
               </option>
             ))}
@@ -200,14 +263,18 @@ export default function Farms() {
 
           <input
             value={plotName}
-            onChange={(e) => setPlotName(e.target.value)}
+            onChange={(event) =>
+              setPlotName(event.target.value)
+            }
             placeholder="Nombre del lote"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
           <input
             value={plotArea}
-            onChange={(e) => setPlotArea(e.target.value)}
+            onChange={(event) =>
+              setPlotArea(event.target.value)
+            }
             placeholder="Superficie"
             type="number"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
@@ -215,7 +282,9 @@ export default function Farms() {
 
           <input
             value={plotCrop}
-            onChange={(e) => setPlotCrop(e.target.value)}
+            onChange={(event) =>
+              setPlotCrop(event.target.value)
+            }
             placeholder="Cultivo actual"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
@@ -235,13 +304,20 @@ export default function Farms() {
 
           <select
             value={cropPlotId}
-            onChange={(e) => setCropPlotId(e.target.value)}
+            onChange={(event) =>
+              setCropPlotId(event.target.value)
+            }
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           >
-            <option value="">Seleccionar lote</option>
+            <option value="">
+              Seleccionar lote
+            </option>
 
             {plots.map((plot) => (
-              <option key={plot.id} value={plot.id}>
+              <option
+                key={plot.id}
+                value={plot.id}
+              >
                 {plot.name}
               </option>
             ))}
@@ -249,14 +325,18 @@ export default function Farms() {
 
           <input
             value={cropName}
-            onChange={(e) => setCropName(e.target.value)}
+            onChange={(event) =>
+              setCropName(event.target.value)
+            }
             placeholder="Cultivo"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
 
           <input
             value={cropVariety}
-            onChange={(e) => setCropVariety(e.target.value)}
+            onChange={(event) =>
+              setCropVariety(event.target.value)
+            }
             placeholder="Variedad"
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
           />
@@ -266,6 +346,40 @@ export default function Farms() {
             className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-3 transition"
           >
             Crear cultivo
+          </button>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h2 className="text-xl font-semibold">
+            Nueva campaña
+          </h2>
+
+          <input
+            value={campaignName}
+            onChange={(event) =>
+              setCampaignName(event.target.value)
+            }
+            placeholder="Nombre de campaña"
+            className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
+          />
+
+          <textarea
+            value={campaignDescription}
+            onChange={(event) =>
+              setCampaignDescription(
+                event.target.value,
+              )
+            }
+            placeholder="Descripción"
+            rows={4}
+            className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500 resize-none"
+          />
+
+          <button
+            onClick={handleCreateCampaign}
+            className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-3 transition"
+          >
+            Crear campaña
           </button>
         </div>
       </div>
@@ -285,20 +399,35 @@ export default function Farms() {
           <table className="w-full text-sm">
             <thead className="bg-slate-950 text-slate-400">
               <tr>
-                <th className="text-left px-6 py-4">Campo</th>
-                <th className="text-left px-6 py-4">Ubicación</th>
-                <th className="text-left px-6 py-4">Lote</th>
-                <th className="text-left px-6 py-4">Superficie</th>
-                <th className="text-left px-6 py-4">Cultivo</th>
-                <th className="text-left px-6 py-4">Estado</th>
-                <th className="text-right px-6 py-4">Acciones</th>
+                <th className="text-left px-6 py-4">
+                  Campo
+                </th>
+                <th className="text-left px-6 py-4">
+                  Ubicación
+                </th>
+                <th className="text-left px-6 py-4">
+                  Lote
+                </th>
+                <th className="text-left px-6 py-4">
+                  Superficie
+                </th>
+                <th className="text-left px-6 py-4">
+                  Cultivo
+                </th>
+                <th className="text-left px-6 py-4">
+                  Estado
+                </th>
+                <th className="text-right px-6 py-4">
+                  Acciones
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {plots.map((plot) => {
                 const crop = crops.find(
-                  (item) => item.plotId === plot.id,
+                  (item) =>
+                    item.plotId === plot.id,
                 );
 
                 return (
@@ -307,11 +436,13 @@ export default function Farms() {
                     className="border-t border-slate-800 hover:bg-slate-800/40 transition"
                   >
                     <td className="px-6 py-4 font-semibold">
-                      {plot.farm?.name || "Sin campo"}
+                      {plot.farm?.name ||
+                        "Sin campo"}
                     </td>
 
                     <td className="px-6 py-4 text-slate-300">
-                      {plot.farm?.location || "-"}
+                      {plot.farm?.location ||
+                        "-"}
                     </td>
 
                     <td className="px-6 py-4 text-slate-300">
@@ -323,12 +454,16 @@ export default function Farms() {
                     </td>
 
                     <td className="px-6 py-4 text-slate-300">
-                      {crop?.name || plot.crop || "-"}
+                      {crop?.name ||
+                        plot.crop ||
+                        "-"}
                     </td>
 
                     <td className="px-6 py-4">
                       <span className="px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                        {crop?.status || plot.status || "Activo"}
+                        {crop?.status ||
+                          plot.status ||
+                          "Activo"}
                       </span>
                     </td>
 
@@ -337,7 +472,9 @@ export default function Farms() {
                         {crop && (
                           <button
                             onClick={async () => {
-                              await deleteCrop(crop.id);
+                              await deleteCrop(
+                                crop.id,
+                              );
                               await loadData();
                             }}
                             className="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white font-semibold transition"
@@ -348,7 +485,9 @@ export default function Farms() {
 
                         <button
                           onClick={async () => {
-                            await deletePlot(plot.id);
+                            await deletePlot(
+                              plot.id,
+                            );
                             await loadData();
                           }}
                           className="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white font-semibold transition"
@@ -389,10 +528,13 @@ export default function Farms() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold">{farm.name}</h3>
+                  <h3 className="font-semibold">
+                    {farm.name}
+                  </h3>
 
                   <p className="text-sm text-slate-400">
-                    {farm.location || "Sin ubicación"}
+                    {farm.location ||
+                      "Sin ubicación"}
                   </p>
 
                   <p className="text-sm text-slate-500 mt-1">
@@ -416,6 +558,54 @@ export default function Farms() {
           {farms.length === 0 && (
             <p className="text-slate-400">
               No hay campos registrados.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          Campañas agrícolas
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {campaigns.map((campaign) => (
+            <div
+              key={campaign.id}
+              className="bg-slate-950 border border-slate-800 rounded-xl p-4"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold">
+                    {campaign.name}
+                  </h3>
+
+                  <p className="text-sm text-slate-400 mt-2">
+                    {campaign.description ||
+                      "Sin descripción"}
+                  </p>
+
+                  <div className="mt-3">
+                    <span
+                      className={
+                        campaign.active
+                          ? "px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                          : "px-3 py-1 rounded-full text-xs bg-red-500/10 text-red-400 border border-red-500/30"
+                      }
+                    >
+                      {campaign.active
+                        ? "Activa"
+                        : "Inactiva"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {campaigns.length === 0 && (
+            <p className="text-slate-400">
+              No hay campañas registradas.
             </p>
           )}
         </div>

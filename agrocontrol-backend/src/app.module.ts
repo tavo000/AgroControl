@@ -20,6 +20,7 @@ import { TenantsModule } from './tenants/tenants.module';
 import { PlotsModule } from './plots/plots.module';
 import { CropsModule } from './crops/crops.module';
 import { HarvestsModule } from './harvests/harvests.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
 
 
 @Module({
@@ -51,6 +52,8 @@ import { HarvestsModule } from './harvests/harvests.module';
     CropsModule,
 
     HarvestsModule,
+
+    CampaignsModule,
   ],
 
   controllers: [AppController],

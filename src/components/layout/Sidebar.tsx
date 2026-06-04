@@ -5,6 +5,7 @@ import {
   Bell,
   Settings,
   BarChart3,
+  Trees,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -24,6 +25,11 @@ const items = [
     icon: Tractor,
     path: "/machines",
   },
+{
+  label: "Campos",
+  icon: Trees,
+  path: "/farms",
+},
   {
     label: "Mapas",
     icon: Map,

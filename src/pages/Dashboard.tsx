@@ -16,6 +16,7 @@ import { useIoTStore } from "../store/iotStore";
 
 import {
   getAlerts,
+  getCampaigns,
   getCrops,
   getFarms,
   getHarvests,
@@ -33,6 +34,7 @@ interface Farm {
 interface Plot {
   id: number;
   name: string;
+  area?: number;
 }
 
 interface Crop {
@@ -57,6 +59,12 @@ interface Harvest {
       };
     };
   };
+}
+
+interface Campaign {
+  id: number;
+  name: string;
+  active: boolean;
 }
 
 export default function Dashboard() {
@@ -85,6 +93,9 @@ export default function Dashboard() {
   const [harvests, setHarvests] =
     useState<Harvest[]>([]);
 
+  const [campaigns, setCampaigns] =
+    useState<Campaign[]>([]);
+
   useEffect(() => {
     loadAlerts();
 
@@ -111,17 +122,20 @@ export default function Dashboard() {
           plotsData,
           cropsData,
           harvestsData,
+          campaignsData,
         ] = await Promise.all([
           getFarms(),
           getPlots(),
           getCrops(),
           getHarvests(),
+          getCampaigns(),
         ]);
 
         setFarms(farmsData);
         setPlots(plotsData);
         setCrops(cropsData);
         setHarvests(harvestsData);
+        setCampaigns(campaignsData);
       } catch (error) {
         console.error(error);
       }
@@ -194,10 +208,29 @@ export default function Dashboard() {
         crop.status !== "Finalizado",
     ).length;
 
+  const activeCampaigns =
+    campaigns.filter(
+      (campaign) => campaign.active,
+    ).length;
+
   const totalProduction =
     harvests.reduce(
       (acc, harvest) =>
         acc + harvest.totalProduction,
+      0,
+    );
+
+  const harvestedArea =
+    harvests.reduce(
+      (acc, harvest) =>
+        acc + harvest.harvestedArea,
+      0,
+    );
+
+  const plantedArea =
+    plots.reduce(
+      (acc, plot) =>
+        acc + (plot.area || 0),
       0,
     );
 
@@ -221,11 +254,11 @@ export default function Dashboard() {
         </h1>
 
         <p className="text-slate-400 mt-1">
-          Monitoreo general de operaciones, maquinaria, cultivos y producción.
+          Monitoreo general de operaciones, maquinaria, cultivos, campañas y producción.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <KpiCard
           title="Campos"
           value={farms.length.toString()}
@@ -239,6 +272,11 @@ export default function Dashboard() {
         <KpiCard
           title="Cultivos Activos"
           value={activeCrops.toString()}
+        />
+
+        <KpiCard
+          title="Campañas Activas"
+          value={activeCampaigns.toString()}
         />
 
         <KpiCard
@@ -261,6 +299,23 @@ export default function Dashboard() {
         />
 
         <KpiCard
+          title="Hectáreas Sembradas"
+          value={`${plantedArea.toFixed(0)} ha`}
+        />
+
+        <KpiCard
+          title="Hectáreas Cosechadas"
+          value={`${harvestedArea.toFixed(0)} ha`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <KpiCard
+          title="Maquinaria Activa"
+          value={activeMachines.toString()}
+        />
+
+        <KpiCard
           title="Combustible Promedio"
           value={`${averageFuel}%`}
         />
@@ -268,6 +323,11 @@ export default function Dashboard() {
         <KpiCard
           title="Alertas Abiertas"
           value={openAlerts.toString()}
+        />
+
+        <KpiCard
+          title="Máquinas Registradas"
+          value={machines.length.toString()}
         />
       </div>
 
@@ -371,7 +431,7 @@ export default function Dashboard() {
           </h2>
 
           <p className="text-sm text-slate-400 mt-1">
-            Resumen de cosechas registradas por campo, lote y cultivo.
+            Resumen de cosechas registradas por campo, lote, cultivo y campaña.
           </p>
         </div>
 
@@ -397,6 +457,10 @@ export default function Dashboard() {
 
                 <th className="text-left px-6 py-4">
                   Producción
+                </th>
+
+                <th className="text-left px-6 py-4">
+                  Hectáreas
                 </th>
 
                 <th className="text-left px-6 py-4">
@@ -442,6 +506,13 @@ export default function Dashboard() {
                   </td>
 
                   <td className="px-6 py-4 text-slate-300">
+                    {harvest.harvestedArea.toFixed(
+                      0,
+                    )}{" "}
+                    ha
+                  </td>
+
+                  <td className="px-6 py-4 text-slate-300">
                     {harvest.yieldPerHectare.toFixed(
                       2,
                     )}{" "}
@@ -453,7 +524,7 @@ export default function Dashboard() {
               {harvests.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="
                       px-6
                       py-10

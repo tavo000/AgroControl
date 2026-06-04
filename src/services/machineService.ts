@@ -414,6 +414,7 @@ export async function deleteHarvest(id: number) {
   return response.json();
 }
 
+
 interface CreateCampaignPayload {
   name: string;
   startDate?: string;

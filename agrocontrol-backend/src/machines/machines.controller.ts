@@ -30,6 +30,15 @@ export class MachinesController {
     );
   }
 
+  @Get('map')
+  async findForMap(
+    @Req() req: any,
+  ) {
+    return this.machinesService.findForMap(
+      req.user.tenantId,
+    );
+  }
+
   @Post()
   async create(
     @Req() req: any,

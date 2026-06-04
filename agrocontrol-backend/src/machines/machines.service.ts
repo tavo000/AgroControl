@@ -19,6 +19,27 @@ export class MachinesService {
     });
   }
 
+  async findForMap(tenantId: number) {
+    return this.prisma.machine.findMany({
+      where: {
+        tenantId,
+      },
+      select: {
+        id: true,
+        name: true,
+        lat: true,
+        lng: true,
+        fuel: true,
+        temperature: true,
+        speed: true,
+        active: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
+
   async create(
     tenantId: number,
     data: {

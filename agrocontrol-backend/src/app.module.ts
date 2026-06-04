@@ -13,9 +13,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { MachinesModule } from './machines/machines.module';
+import { FarmsModule } from './farms/farms.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
 import { TenantsModule } from './tenants/tenants.module';
+
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { TenantsModule } from './tenants/tenants.module';
     AuthModule,
 
     MachinesModule,
+
+    FarmsModule,
 
     AlertsModule,
 

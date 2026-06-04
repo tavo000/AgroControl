@@ -39,6 +39,7 @@ interface CreatePlotPayload {
 
 interface CreateCropPayload {
   plotId: number;
+  campaignId?: number;
   name: string;
   variety?: string;
   sowingDate?: string;

@@ -17,6 +17,8 @@ export class CropsService {
       },
 
       include: {
+        campaign: true,
+
         plot: {
           include: {
             farm: true,
@@ -34,6 +36,7 @@ export class CropsService {
     tenantId: number,
     data: {
       plotId: number;
+      campaignId?: number;
       name: string;
       variety?: string;
       sowingDate?: Date;
@@ -44,7 +47,15 @@ export class CropsService {
     return this.prisma.crop.create({
       data: {
         tenantId,
-        ...data,
+        plotId: data.plotId,
+        campaignId: data.campaignId,
+        name: data.name,
+        variety: data.variety,
+        sowingDate: data.sowingDate,
+        expectedHarvest:
+          data.expectedHarvest,
+        status:
+          data.status ?? 'Activo',
       },
     });
   }

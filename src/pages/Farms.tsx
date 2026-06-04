@@ -33,17 +33,6 @@ interface Plot {
   farm?: Farm;
 }
 
-interface Crop {
-  id: number;
-  plotId: number;
-  name: string;
-  variety?: string;
-  sowingDate?: string;
-  expectedHarvest?: string;
-  status?: string;
-  plot?: Plot;
-}
-
 interface Campaign {
   id: number;
   name: string;
@@ -51,7 +40,19 @@ interface Campaign {
   endDate?: string;
   description?: string;
   active: boolean;
-  crops?: Crop[];
+}
+
+interface Crop {
+  id: number;
+  plotId: number;
+  campaignId?: number;
+  name: string;
+  variety?: string;
+  sowingDate?: string;
+  expectedHarvest?: string;
+  status?: string;
+  plot?: Plot;
+  campaign?: Campaign;
 }
 
 export default function Farms() {
@@ -73,6 +74,8 @@ export default function Farms() {
   const [plotCrop, setPlotCrop] = useState("");
 
   const [cropPlotId, setCropPlotId] =
+    useState("");
+  const [cropCampaignId, setCropCampaignId] =
     useState("");
   const [cropName, setCropName] = useState("");
   const [cropVariety, setCropVariety] =
@@ -154,12 +157,16 @@ export default function Farms() {
 
     await createCrop({
       plotId: Number(cropPlotId),
+      campaignId: cropCampaignId
+        ? Number(cropCampaignId)
+        : undefined,
       name: cropName,
       variety: cropVariety,
       status: "Activo",
     });
 
     setCropPlotId("");
+    setCropCampaignId("");
     setCropName("");
     setCropVariety("");
 
@@ -323,6 +330,27 @@ export default function Farms() {
             ))}
           </select>
 
+          <select
+            value={cropCampaignId}
+            onChange={(event) =>
+              setCropCampaignId(event.target.value)
+            }
+            className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
+          >
+            <option value="">
+              Seleccionar campaña
+            </option>
+
+            {campaigns.map((campaign) => (
+              <option
+                key={campaign.id}
+                value={campaign.id}
+              >
+                {campaign.name}
+              </option>
+            ))}
+          </select>
+
           <input
             value={cropName}
             onChange={(event) =>
@@ -391,7 +419,7 @@ export default function Farms() {
           </h2>
 
           <p className="text-sm text-slate-400 mt-1">
-            Relación entre campos, lotes y cultivos.
+            Relación entre campos, lotes, campañas y cultivos.
           </p>
         </div>
 
@@ -402,21 +430,31 @@ export default function Farms() {
                 <th className="text-left px-6 py-4">
                   Campo
                 </th>
+
                 <th className="text-left px-6 py-4">
                   Ubicación
                 </th>
+
                 <th className="text-left px-6 py-4">
                   Lote
                 </th>
+
                 <th className="text-left px-6 py-4">
                   Superficie
                 </th>
+
+                <th className="text-left px-6 py-4">
+                  Campaña
+                </th>
+
                 <th className="text-left px-6 py-4">
                   Cultivo
                 </th>
+
                 <th className="text-left px-6 py-4">
                   Estado
                 </th>
+
                 <th className="text-right px-6 py-4">
                   Acciones
                 </th>
@@ -451,6 +489,11 @@ export default function Farms() {
 
                     <td className="px-6 py-4 text-slate-300">
                       {plot.area || 0} ha
+                    </td>
+
+                    <td className="px-6 py-4 text-slate-300">
+                      {crop?.campaign?.name ||
+                        "-"}
                     </td>
 
                     <td className="px-6 py-4 text-slate-300">
@@ -503,7 +546,7 @@ export default function Farms() {
               {plots.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-10 text-center text-slate-400"
                   >
                     No hay lotes registrados.

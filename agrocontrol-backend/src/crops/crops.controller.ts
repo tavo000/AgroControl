@@ -37,6 +37,7 @@ export class CropsController {
     @Body()
     body: {
       plotId: number;
+      campaignId?: number;
       name: string;
       variety?: string;
       sowingDate?: Date;

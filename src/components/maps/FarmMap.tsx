@@ -4,9 +4,16 @@ import {
   Marker,
   Popup,
   Polygon,
+  ZoomControl,
 } from "react-leaflet";
 
 import { useEffect, useState } from "react";
+
+import {
+  getCrops,
+  getHarvests,
+  getPlots,
+} from "../../services/machineService";
 
 interface MapMachine {
   id: number;
@@ -17,6 +24,38 @@ interface MapMachine {
   temperature: number;
   speed: number;
   active: boolean;
+}
+
+interface Plot {
+  id: number;
+  name: string;
+  area?: number;
+  crop?: string;
+  status?: string;
+  farm?: {
+    name: string;
+    location?: string;
+  };
+}
+
+interface Crop {
+  id: number;
+  plotId: number;
+  name: string;
+  variety?: string;
+  status?: string;
+  campaign?: {
+    name: string;
+  };
+}
+
+interface Harvest {
+  id: number;
+  cropId: number;
+  totalProduction: number;
+  harvestedArea: number;
+  yieldPerHectare: number;
+  unit: string;
 }
 
 const polygon: [number, number][] = [
@@ -30,8 +69,17 @@ export default function FarmMap() {
   const [machines, setMachines] =
     useState<MapMachine[]>([]);
 
+  const [plots, setPlots] =
+    useState<Plot[]>([]);
+
+  const [crops, setCrops] =
+    useState<Crop[]>([]);
+
+  const [harvests, setHarvests] =
+    useState<Harvest[]>([]);
+
   useEffect(() => {
-    loadMachinesMap();
+    loadMapData();
 
     const interval = setInterval(() => {
       loadMachinesMap();
@@ -39,6 +87,33 @@ export default function FarmMap() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const loadMapData = async () => {
+    await Promise.all([
+      loadMachinesMap(),
+      loadAgriculturalData(),
+    ]);
+  };
+
+  const loadAgriculturalData = async () => {
+    try {
+      const [
+        plotsData,
+        cropsData,
+        harvestsData,
+      ] = await Promise.all([
+        getPlots(),
+        getCrops(),
+        getHarvests(),
+      ]);
+
+      setPlots(plotsData);
+      setCrops(cropsData);
+      setHarvests(harvestsData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const loadMachinesMap = async () => {
     const token = localStorage.getItem(
@@ -61,10 +136,27 @@ export default function FarmMap() {
     setMachines(data);
   };
 
+  const currentPlot = plots[0];
+
+  const currentCrop = currentPlot
+    ? crops.find(
+        (crop) =>
+          crop.plotId === currentPlot.id,
+      )
+    : undefined;
+
+  const currentHarvest = currentCrop
+    ? harvests.find(
+        (harvest) =>
+          harvest.cropId === currentCrop.id,
+      )
+    : undefined;
+
   return (
     <MapContainer
       center={[-32.95, -61.3]}
       zoom={13}
+      zoomControl={false}
       style={{
         height: "100%",
         width: "100%",
@@ -76,6 +168,113 @@ export default function FarmMap() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
+      <ZoomControl position="topright" />
+
+      <Polygon
+        positions={polygon}
+        pathOptions={{
+          color: "#10b981",
+          weight: 3,
+          fillOpacity: 0.25,
+        }}
+      >
+        <Popup
+          minWidth={240}
+          maxWidth={260}
+        >
+          <div
+            style={{
+              width: "240px",
+              fontFamily:
+                "Inter, system-ui, sans-serif",
+            }}
+          >
+            <div
+              style={{
+                marginBottom: "10px",
+              }}
+            >
+              <strong
+                style={{
+                  display: "block",
+                  fontSize: "15px",
+                  color: "#111827",
+                }}
+              >
+                {currentPlot?.farm?.name ||
+                  "Campo agrícola"}
+              </strong>
+
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "#6b7280",
+                }}
+              >
+                Lote productivo
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: "6px",
+                fontSize: "13px",
+                color: "#374151",
+              }}
+            >
+              <div>
+                <strong>Lote:</strong>{" "}
+                {currentPlot?.name ||
+                  "Sin lote"}
+              </div>
+
+              <div>
+                <strong>Cultivo:</strong>{" "}
+                {currentCrop?.name ||
+                  "Sin cultivo"}
+              </div>
+
+              <div>
+                <strong>Superficie:</strong>{" "}
+                {currentPlot?.area || 0} ha
+              </div>
+
+              <div>
+                <strong>Producción:</strong>{" "}
+                {currentHarvest
+                  ? `${currentHarvest.totalProduction.toFixed(
+                      0,
+                    )} tn`
+                  : "Sin cosecha"}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href =
+                  "/telemetry";
+              }}
+              style={{
+                marginTop: "12px",
+                width: "100%",
+                border: "none",
+                borderRadius: "10px",
+                padding: "8px 10px",
+                background: "#10b981",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Ver detalle
+            </button>
+          </div>
+        </Popup>
+      </Polygon>
+
       {machines.map((machine) => (
         <Marker
           key={machine.id}
@@ -84,44 +283,73 @@ export default function FarmMap() {
             machine.lng,
           ]}
         >
-          <Popup>
-            <div>
-              <strong>{machine.name}</strong>
+          <Popup
+            minWidth={230}
+            maxWidth={280}
+          >
+            <div
+              style={{
+                width: "230px",
+                fontFamily:
+                  "Inter, system-ui, sans-serif",
+              }}
+            >
+              <strong
+                style={{
+                  display: "block",
+                  fontSize: "15px",
+                  marginBottom: "8px",
+                  color: "#111827",
+                }}
+              >
+                {machine.name}
+              </strong>
 
-              <p>
-                Combustible:{" "}
-                {machine.fuel.toFixed(0)}%
-              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gap: "6px",
+                  fontSize: "13px",
+                  color: "#374151",
+                }}
+              >
+                <div>
+                  <strong>Combustible:</strong>{" "}
+                  {machine.fuel.toFixed(0)}%
+                </div>
 
-              <p>
-                Temperatura:{" "}
-                {machine.temperature.toFixed(0)}
-                °C
-              </p>
+                <div>
+                  <strong>Temperatura:</strong>{" "}
+                  {machine.temperature.toFixed(0)}
+                  °C
+                </div>
 
-              <p>
-                Velocidad:{" "}
-                {machine.speed.toFixed(0)}
-                km/h
-              </p>
+                <div>
+                  <strong>Velocidad:</strong>{" "}
+                  {machine.speed.toFixed(0)}
+                  km/h
+                </div>
 
-              <p>
-                Estado:{" "}
-                {machine.active
-                  ? "Activa"
-                  : "Inactiva"}
-              </p>
+                <div>
+                  <strong>Estado:</strong>{" "}
+                  <span
+                    style={{
+                      color: machine.active
+                        ? "#059669"
+                        : "#dc2626",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {machine.active
+                      ? "Activa"
+                      : "Inactiva"}
+                  </span>
+                </div>
+              </div>
             </div>
           </Popup>
         </Marker>
       ))}
-
-      <Polygon
-        positions={polygon}
-        pathOptions={{
-          color: "#10b981",
-        }}
-      />
     </MapContainer>
   );
 }

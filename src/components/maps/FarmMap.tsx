@@ -6,7 +6,18 @@ import {
   Polygon,
 } from "react-leaflet";
 
-import { useIoTStore } from "../../store/iotStore";
+import { useEffect, useState } from "react";
+
+interface MapMachine {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  fuel: number;
+  temperature: number;
+  speed: number;
+  active: boolean;
+}
 
 const polygon: [number, number][] = [
   [-32.95, -61.3],
@@ -16,9 +27,39 @@ const polygon: [number, number][] = [
 ];
 
 export default function FarmMap() {
-  const machines = useIoTStore(
-    (state) => state.machines,
-  );
+  const [machines, setMachines] =
+    useState<MapMachine[]>([]);
+
+  useEffect(() => {
+    loadMachinesMap();
+
+    const interval = setInterval(() => {
+      loadMachinesMap();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadMachinesMap = async () => {
+    const token = localStorage.getItem(
+      "agrocontrol_token",
+    );
+
+    const response = await fetch(
+      "http://localhost:4000/machines/map",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    setMachines(data);
+  };
 
   return (
     <MapContainer
@@ -53,7 +94,7 @@ export default function FarmMap() {
               </p>
 
               <p>
-                Temp:{" "}
+                Temperatura:{" "}
                 {machine.temperature.toFixed(0)}
                 °C
               </p>

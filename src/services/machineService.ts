@@ -346,3 +346,70 @@ export async function deleteCrop(id: number) {
 
   return response.json();
 }
+
+interface CreateHarvestPayload {
+  cropId: number;
+  harvestDate?: string;
+  totalProduction: number;
+  harvestedArea: number;
+  yieldPerHectare: number;
+  unit?: string;
+  campaign?: string;
+  observations?: string;
+}
+
+export async function getHarvests() {
+  const response = await fetch(
+    "http://localhost:4000/harvests",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener cosechas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createHarvest(
+  payload: CreateHarvestPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/harvests",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear cosecha",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteHarvest(id: number) {
+  const response = await fetch(
+    `http://localhost:4000/harvests/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar cosecha",
+    );
+  }
+
+  return response.json();
+}

@@ -40,6 +40,7 @@ model Tenant {
   farms       Farm[]
   plots       Plot[]
   crops       Crop[]
+  harvests    Harvest[]
 }
 
 model User {
@@ -170,6 +171,29 @@ model Crop {
   sowingDate      DateTime?
   expectedHarvest DateTime?
   status          String    @default("Activo")
+
+  harvests Harvest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Harvest {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+  cropId   Int
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  crop   Crop   @relation(fields: [cropId], references: [id])
+
+  harvestDate     DateTime?
+  totalProduction Float
+  harvestedArea   Float
+  yieldPerHectare Float
+  unit            String    @default("tn")
+  campaign        String?
+  observations    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

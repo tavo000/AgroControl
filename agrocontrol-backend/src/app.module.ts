@@ -19,6 +19,8 @@ import { TelemetryModule } from './telemetry/telemetry.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { PlotsModule } from './plots/plots.module';
 import { CropsModule } from './crops/crops.module';
+import { HarvestsModule } from './harvests/harvests.module';
+
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { CropsModule } from './crops/crops.module';
     PlotsModule,
 
     CropsModule,
+
+    HarvestsModule,
   ],
 
   controllers: [AppController],

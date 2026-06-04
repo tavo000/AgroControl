@@ -18,6 +18,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { PlotsModule } from './plots/plots.module';
+import { CropsModule } from './crops/crops.module';
 
 @Module({
   imports: [
@@ -44,6 +45,8 @@ import { PlotsModule } from './plots/plots.module';
     DashboardModule,
 
     PlotsModule,
+
+    CropsModule,
   ],
 
   controllers: [AppController],

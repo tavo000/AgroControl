@@ -15,9 +15,9 @@ import Telemetry from "../pages/Telemetry";
 
 import Farms from "../pages/Farms";
 
+import Harvests from "../pages/Harvests";
 
 import Login from "../pages/Login";
-
 
 import PrivateRoute from "./PrivateRoute";
 
@@ -75,6 +75,12 @@ export const router =
           path: "/farms",
 
           element: <Farms />,
+        },
+
+        {
+          path: "/harvests",
+
+          element: <Harvests />,
         },
       ],
     },

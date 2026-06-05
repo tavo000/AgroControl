@@ -42,6 +42,7 @@ model Tenant {
   crops       Crop[]
   harvests    Harvest[]
   campaigns   Campaign[]
+  agriculturalCosts AgriculturalCost[]
 }
 
 model User {
@@ -216,6 +217,35 @@ model Campaign {
   active      Boolean   @default(true)
 
   crops Crop[]
+
+  costs AgriculturalCost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgriculturalCost {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+  campaignId Int
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+
+  category String
+  description String?
+
+  quantity Float @default(1)
+
+  unitCost Float
+
+  totalCost Float
+
+  costDate DateTime?
+
+  supplier String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

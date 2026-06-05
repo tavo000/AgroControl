@@ -21,6 +21,7 @@ import { PlotsModule } from './plots/plots.module';
 import { CropsModule } from './crops/crops.module';
 import { HarvestsModule } from './harvests/harvests.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
+import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs.module';
 
 
 @Module({

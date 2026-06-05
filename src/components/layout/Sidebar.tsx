@@ -7,6 +7,7 @@ import {
   BarChart3,
   Trees,
   Wheat,
+  ReceiptText,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -56,6 +57,11 @@ const items = [
     icon: Settings,
     path: "/settings",
   },
+  {
+    label: "Costos Agrícolas",
+    icon: ReceiptText,
+    path: "/agricultural-costs",
+  }
 ];
 
 export default function Sidebar() {

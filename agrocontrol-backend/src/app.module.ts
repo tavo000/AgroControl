@@ -55,6 +55,8 @@ import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs
     HarvestsModule,
 
     CampaignsModule,
+
+    AgriculturalCostsModule,
   ],
 
   controllers: [AppController],

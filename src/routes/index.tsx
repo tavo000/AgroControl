@@ -17,6 +17,8 @@ import Farms from "../pages/Farms";
 
 import Harvests from "../pages/Harvests";
 
+import AgriculturalCosts from "../pages/AgriculturalCosts";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -81,6 +83,12 @@ export const router =
           path: "/harvests",
 
           element: <Harvests />,
+        },
+
+        {
+          path: "/agricultural-costs",
+
+          element: <AgriculturalCosts />,
         },
       ],
     },

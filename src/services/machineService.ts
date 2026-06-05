@@ -479,3 +479,72 @@ export async function deleteCampaign(id: number) {
 
   return response.json();
 }
+
+interface CreateAgriculturalCostPayload {
+  campaignId: number;
+  category: string;
+  description?: string;
+  quantity?: number;
+  unitCost: number;
+  totalCost?: number;
+  costDate?: string;
+  supplier?: string;
+}
+
+export async function getAgriculturalCosts() {
+  const response = await fetch(
+    "http://localhost:4000/agricultural-costs",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener costos agrícolas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createAgriculturalCost(
+  payload: CreateAgriculturalCostPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/agricultural-costs",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear costo agrícola",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteAgriculturalCost(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/agricultural-costs/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar costo agrícola",
+    );
+  }
+
+  return response.json();
+}

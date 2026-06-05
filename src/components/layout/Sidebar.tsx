@@ -6,6 +6,7 @@ import {
   Settings,
   BarChart3,
   Trees,
+  Wheat,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -25,11 +26,16 @@ const items = [
     icon: Tractor,
     path: "/machines",
   },
-{
-  label: "Campos",
-  icon: Trees,
-  path: "/farms",
-},
+  {
+    label: "Campos",
+    icon: Trees,
+    path: "/farms",
+  },
+  {
+    label: "Cosechas",
+    icon: Wheat,
+    path: "/harvests",
+  },
   {
     label: "Mapas",
     icon: Map,

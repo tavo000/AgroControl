@@ -58,12 +58,55 @@ interface Harvest {
   unit: string;
 }
 
-const polygon: [number, number][] = [
-  [-32.95, -61.3],
-  [-32.96, -61.28],
-  [-32.97, -61.29],
-  [-32.96, -61.31],
+const basePolygons: [number, number][][] = [
+  [
+    [-32.95, -61.3],
+    [-32.96, -61.28],
+    [-32.97, -61.29],
+    [-32.96, -61.31],
+  ],
+  [
+    [-32.945, -61.315],
+    [-32.952, -61.302],
+    [-32.961, -61.308],
+    [-32.954, -61.323],
+  ],
+  [
+    [-32.965, -61.275],
+    [-32.972, -61.26],
+    [-32.982, -61.268],
+    [-32.975, -61.285],
+  ],
 ];
+
+function getCropColor(cropName?: string) {
+  if (!cropName) return "#64748b";
+
+  const normalized =
+    cropName.toLowerCase();
+
+  if (normalized.includes("soja")) {
+    return "#10b981";
+  }
+
+  if (normalized.includes("maíz")) {
+    return "#f59e0b";
+  }
+
+  if (normalized.includes("maiz")) {
+    return "#f59e0b";
+  }
+
+  if (normalized.includes("trigo")) {
+    return "#eab308";
+  }
+
+  if (normalized.includes("girasol")) {
+    return "#f97316";
+  }
+
+  return "#22c55e";
+}
 
 export default function FarmMap() {
   const [machines, setMachines] =
@@ -136,21 +179,17 @@ export default function FarmMap() {
     setMachines(data);
   };
 
-  const currentPlot = plots[0];
-
-  const currentCrop = currentPlot
-    ? crops.find(
-        (crop) =>
-          crop.plotId === currentPlot.id,
-      )
-    : undefined;
-
-  const currentHarvest = currentCrop
-    ? harvests.find(
-        (harvest) =>
-          harvest.cropId === currentCrop.id,
-      )
-    : undefined;
+  const visiblePlots =
+    plots.length > 0
+      ? plots
+      : [
+          {
+            id: 0,
+            name: "Lote demostración",
+            area: 0,
+            status: "Activo",
+          },
+        ];
 
   return (
     <MapContainer
@@ -170,110 +209,142 @@ export default function FarmMap() {
 
       <ZoomControl position="topright" />
 
-      <Polygon
-        positions={polygon}
-        pathOptions={{
-          color: "#10b981",
-          weight: 3,
-          fillOpacity: 0.25,
-        }}
-      >
-        <Popup
-          minWidth={240}
-          maxWidth={260}
-        >
-          <div
-            style={{
-              width: "240px",
-              fontFamily:
-                "Inter, system-ui, sans-serif",
+      {visiblePlots.map((plot, index) => {
+        const crop = crops.find(
+          (item) => item.plotId === plot.id,
+        );
+
+        const harvest = crop
+          ? harvests.find(
+              (item) =>
+                item.cropId === crop.id,
+            )
+          : undefined;
+
+        const polygon =
+          basePolygons[
+            index % basePolygons.length
+          ];
+
+        const color = getCropColor(
+          crop?.name || plot.crop,
+        );
+
+        return (
+          <Polygon
+            key={plot.id}
+            positions={polygon}
+            pathOptions={{
+              color,
+              weight: 3,
+              fillOpacity: 0.28,
             }}
           >
-            <div
-              style={{
-                marginBottom: "10px",
-              }}
+            <Popup
+              minWidth={240}
+              maxWidth={260}
             >
-              <strong
+              <div
                 style={{
-                  display: "block",
-                  fontSize: "15px",
-                  color: "#111827",
+                  width: "240px",
+                  fontFamily:
+                    "Inter, system-ui, sans-serif",
                 }}
               >
-                {currentPlot?.farm?.name ||
-                  "Campo agrícola"}
-              </strong>
+                <div
+                  style={{
+                    marginBottom: "10px",
+                  }}
+                >
+                  <strong
+                    style={{
+                      display: "block",
+                      fontSize: "15px",
+                      color: "#111827",
+                    }}
+                  >
+                    {plot.farm?.name ||
+                      "Campo agrícola"}
+                  </strong>
 
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "#6b7280",
-                }}
-              >
-                Lote productivo
-              </span>
-            </div>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#6b7280",
+                    }}
+                  >
+                    Lote productivo
+                  </span>
+                </div>
 
-            <div
-              style={{
-                display: "grid",
-                gap: "6px",
-                fontSize: "13px",
-                color: "#374151",
-              }}
-            >
-              <div>
-                <strong>Lote:</strong>{" "}
-                {currentPlot?.name ||
-                  "Sin lote"}
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "6px",
+                    fontSize: "13px",
+                    color: "#374151",
+                  }}
+                >
+                  <div>
+                    <strong>Lote:</strong>{" "}
+                    {plot.name ||
+                      "Sin lote"}
+                  </div>
+
+                  <div>
+                    <strong>Cultivo:</strong>{" "}
+                    {crop?.name ||
+                      plot.crop ||
+                      "Sin cultivo"}
+                  </div>
+
+                  <div>
+                    <strong>Campaña:</strong>{" "}
+                    {crop?.campaign?.name ||
+                      "Sin campaña"}
+                  </div>
+
+                  <div>
+                    <strong>Superficie:</strong>{" "}
+                    {plot.area || 0} ha
+                  </div>
+
+                  <div>
+                    <strong>Producción:</strong>{" "}
+                    {harvest
+                      ? `${harvest.totalProduction.toFixed(
+                          0,
+                        )} tn`
+                      : "Sin cosecha"}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href =
+                      "/telemetry";
+                  }}
+                  style={{
+                    marginTop: "12px",
+                    width: "100%",
+                    border: "none",
+                    borderRadius: "10px",
+                    padding: "8px 10px",
+                    background: "#10b981",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Ver detalle
+                </button>
               </div>
-
-              <div>
-                <strong>Cultivo:</strong>{" "}
-                {currentCrop?.name ||
-                  "Sin cultivo"}
-              </div>
-
-              <div>
-                <strong>Superficie:</strong>{" "}
-                {currentPlot?.area || 0} ha
-              </div>
-
-              <div>
-                <strong>Producción:</strong>{" "}
-                {currentHarvest
-                  ? `${currentHarvest.totalProduction.toFixed(
-                      0,
-                    )} tn`
-                  : "Sin cosecha"}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href =
-                  "/telemetry";
-              }}
-              style={{
-                marginTop: "12px",
-                width: "100%",
-                border: "none",
-                borderRadius: "10px",
-                padding: "8px 10px",
-                background: "#10b981",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Ver detalle
-            </button>
-          </div>
-        </Popup>
-      </Polygon>
+            </Popup>
+          </Polygon>
+        );
+      })}
 
       {machines.map((machine) => (
         <Marker

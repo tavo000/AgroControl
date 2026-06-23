@@ -8,6 +8,7 @@ import {
   Trees,
   Wheat,
   ReceiptText,
+  LineChart,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -38,6 +39,16 @@ const items = [
     path: "/harvests",
   },
   {
+    label: "Costos Agrícolas",
+    icon: ReceiptText,
+    path: "/agricultural-costs",
+  },
+  {
+    label: "Finanzas",
+    icon: LineChart,
+    path: "/financial",
+  },
+  {
     label: "Mapas",
     icon: Map,
     path: "/maps",
@@ -57,11 +68,6 @@ const items = [
     icon: Settings,
     path: "/settings",
   },
-  {
-    label: "Costos Agrícolas",
-    icon: ReceiptText,
-    path: "/agricultural-costs",
-  }
 ];
 
 export default function Sidebar() {
@@ -79,14 +85,7 @@ export default function Sidebar() {
         overflow-hidden
       "
     >
-      <div
-        className="
-          p-6
-          text-2xl
-          font-bold
-          whitespace-nowrap
-        "
-      >
+      <div className="p-6 text-2xl font-bold whitespace-nowrap">
         AgroControl
       </div>
 
@@ -97,15 +96,7 @@ export default function Sidebar() {
             to={item.path}
             className={({ isActive }) =>
               `
-                w-full
-                flex
-                items-center
-                gap-3
-                px-4
-                py-3
-                rounded-xl
-                transition
-                mb-2
+                w-full flex items-center gap-3 px-4 py-3 rounded-xl transition mb-2
                 ${
                   isActive
                     ? "bg-emerald-500 text-slate-950"
@@ -116,9 +107,7 @@ export default function Sidebar() {
           >
             <item.icon size={20} />
 
-            {sidebarOpen && (
-              <span>{item.label}</span>
-            )}
+            {sidebarOpen && <span>{item.label}</span>}
           </NavLink>
         ))}
       </nav>

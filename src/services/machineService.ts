@@ -1,9 +1,9 @@
 import type { TelemetryData } from "../types/telemetry";
 
 function getAuthHeaders() {
-  const token = localStorage.getItem(
-    "agrocontrol_token",
-  );
+  const token =
+    localStorage.getItem("agrocontrol_token") ||
+    localStorage.getItem("token");
 
   return {
     Authorization: `Bearer ${token}`,
@@ -480,6 +480,7 @@ export async function deleteCampaign(id: number) {
   return response.json();
 }
 
+
 interface CreateAgriculturalCostPayload {
   campaignId: number;
   category: string;
@@ -543,6 +544,25 @@ export async function deleteAgriculturalCost(
   if (!response.ok) {
     throw new Error(
       "Error al eliminar costo agrícola",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getAgriculturalProfitability() {
+  const response = await fetch(
+    "http://localhost:4000/agricultural-costs/profitability",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+
+    throw new Error(
+      `Error al obtener rentabilidad agrícola. Status: ${response.status}. Respuesta: ${errorText}`,
     );
   }
 

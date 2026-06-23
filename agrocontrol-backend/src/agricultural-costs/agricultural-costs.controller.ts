@@ -35,14 +35,17 @@ export class AgriculturalCostsController {
     );
   }
 
+  @Get('profitability')
+  async getProfitability(@Req() req: any) {
+    return this.agriculturalCostsService.getProfitability(
+      req.user.tenantId,
+    );
+  }
+
   @Get('campaign/:campaignId')
   async findByCampaign(
     @Req() req: any,
-
-    @Param(
-      'campaignId',
-      ParseIntPipe,
-    )
+    @Param('campaignId', ParseIntPipe)
     campaignId: number,
   ) {
     return this.agriculturalCostsService.findByCampaign(
@@ -54,7 +57,6 @@ export class AgriculturalCostsController {
   @Post()
   async create(
     @Req() req: any,
-
     @Body()
     body: {
       campaignId: number;
@@ -76,11 +78,7 @@ export class AgriculturalCostsController {
   @Delete(':id')
   async remove(
     @Req() req: any,
-
-    @Param(
-      'id',
-      ParseIntPipe,
-    )
+    @Param('id', ParseIntPipe)
     id: number,
   ) {
     return this.agriculturalCostsService.remove(

@@ -12,15 +12,9 @@ export class AgriculturalCostsService {
 
   async findAll(tenantId: number) {
     return this.prisma.agriculturalCost.findMany({
-      where: {
-        tenantId,
-      },
-      include: {
-        campaign: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: { tenantId },
+      include: { campaign: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -33,24 +27,16 @@ export class AgriculturalCostsService {
         tenantId,
         campaignId,
       },
-      include: {
-        campaign: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      include: { campaign: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async getSummary(tenantId: number) {
     const costs =
       await this.prisma.agriculturalCost.findMany({
-        where: {
-          tenantId,
-        },
-        include: {
-          campaign: true,
-        },
+        where: { tenantId },
+        include: { campaign: true },
       });
 
     const totalInvested = costs.reduce(
@@ -61,10 +47,7 @@ export class AgriculturalCostsService {
     const totalRecords = costs.length;
 
     const byCategory = costs.reduce(
-      (
-        acc: Record<string, number>,
-        cost,
-      ) => {
+      (acc: Record<string, number>, cost) => {
         acc[cost.category] =
           (acc[cost.category] || 0) +
           cost.totalCost;
@@ -75,10 +58,7 @@ export class AgriculturalCostsService {
     );
 
     const byCampaign = costs.reduce(
-      (
-        acc: Record<string, number>,
-        cost,
-      ) => {
+      (acc: Record<string, number>, cost) => {
         const campaignName =
           cost.campaign?.name || 'Sin campaña';
 
@@ -96,6 +76,122 @@ export class AgriculturalCostsService {
       totalRecords,
       byCategory,
       byCampaign,
+    };
+  }
+
+  async getProfitability(tenantId: number) {
+    const campaigns =
+      await this.prisma.campaign.findMany({
+        where: { tenantId },
+        include: {
+          costs: true,
+          crops: {
+            include: {
+              harvests: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+    const data = campaigns.map((campaign) => {
+      const totalCosts = campaign.costs.reduce(
+        (acc, cost) => acc + cost.totalCost,
+        0,
+      );
+
+      const harvests = campaign.crops.flatMap(
+        (crop) => crop.harvests,
+      );
+
+      const totalProduction = harvests.reduce(
+        (acc, harvest) =>
+          acc + harvest.totalProduction,
+        0,
+      );
+
+      const harvestedArea = harvests.reduce(
+        (acc, harvest) =>
+          acc + harvest.harvestedArea,
+        0,
+      );
+
+      const estimatedPricePerTon = 250000;
+
+      const estimatedIncome =
+        totalProduction * estimatedPricePerTon;
+
+      const grossMargin =
+        estimatedIncome - totalCosts;
+
+      const profitabilityRate =
+        totalCosts > 0
+          ? (grossMargin / totalCosts) * 100
+          : 0;
+
+      const averageYield =
+        harvestedArea > 0
+          ? totalProduction / harvestedArea
+          : 0;
+
+      return {
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        totalCosts,
+        totalProduction,
+        harvestedArea,
+        averageYield,
+        estimatedPricePerTon,
+        estimatedIncome,
+        grossMargin,
+        profitabilityRate,
+        status:
+          profitabilityRate >= 30
+            ? 'Rentable'
+            : profitabilityRate >= 0
+              ? 'Ajustada'
+              : 'Negativa',
+      };
+    });
+
+    const totalCosts = data.reduce(
+      (acc, item) => acc + item.totalCosts,
+      0,
+    );
+
+    const totalProduction = data.reduce(
+      (acc, item) => acc + item.totalProduction,
+      0,
+    );
+
+    const estimatedIncome = data.reduce(
+      (acc, item) => acc + item.estimatedIncome,
+      0,
+    );
+
+    const grossMargin =
+      estimatedIncome - totalCosts;
+
+    const profitabilityRate =
+      totalCosts > 0
+        ? (grossMargin / totalCosts) * 100
+        : 0;
+
+    return {
+      summary: {
+        totalCosts,
+        totalProduction,
+        estimatedIncome,
+        grossMargin,
+        profitabilityRate,
+      },
+      campaigns: data.sort(
+        (a, b) =>
+          b.profitabilityRate -
+          a.profitabilityRate,
+      ),
     };
   }
 
@@ -163,16 +259,10 @@ export class AgriculturalCostsService {
     });
   }
 
-  async remove(
-    tenantId: number,
-    id: number,
-  ) {
+  async remove(tenantId: number, id: number) {
     const cost =
       await this.prisma.agriculturalCost.findFirst({
-        where: {
-          id,
-          tenantId,
-        },
+        where: { id, tenantId },
       });
 
     if (!cost) {
@@ -182,9 +272,7 @@ export class AgriculturalCostsService {
     }
 
     return this.prisma.agriculturalCost.delete({
-      where: {
-        id,
-      },
+      where: { id },
     });
   }
 }

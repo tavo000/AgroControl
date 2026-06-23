@@ -41,6 +41,7 @@ export class CampaignsController {
       endDate?: Date;
       description?: string;
       active?: boolean;
+      salePricePerTon?: number;
     },
   ) {
     return this.campaignsService.create(

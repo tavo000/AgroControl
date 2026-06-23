@@ -216,6 +216,8 @@ model Campaign {
   description String?
   active      Boolean   @default(true)
 
+  salePricePerTon Float? @default(0)
+
   crops Crop[]
 
   costs AgriculturalCost[]

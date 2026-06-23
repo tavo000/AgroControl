@@ -34,6 +34,7 @@ export class CampaignsService {
       endDate?: Date;
       description?: string;
       active?: boolean;
+      salePricePerTon?: number;
     },
   ) {
     return this.prisma.campaign.create({
@@ -44,6 +45,10 @@ export class CampaignsService {
         endDate: data.endDate,
         description: data.description,
         active: data.active ?? true,
+        salePricePerTon:
+          data.salePricePerTon !== undefined
+            ? Number(data.salePricePerTon)
+            : 0,
       },
     });
   }

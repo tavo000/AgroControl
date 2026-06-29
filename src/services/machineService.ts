@@ -422,6 +422,7 @@ interface CreateCampaignPayload {
   endDate?: string;
   description?: string;
   active?: boolean;
+  salePricePerTon?: number;
 }
 
 export async function getCampaigns() {
@@ -456,6 +457,28 @@ export async function createCampaign(
   if (!response.ok) {
     throw new Error(
       "Error al crear campaña",
+    );
+  }
+
+  return response.json();
+}
+
+export async function updateCampaign(
+  id: number,
+  payload: Partial<CreateCampaignPayload>,
+) {
+  const response = await fetch(
+    `http://localhost:4000/campaigns/${id}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al actualizar campaña",
     );
   }
 

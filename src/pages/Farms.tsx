@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import {
   createCampaign,
+  updateCampaign,
   createCrop,
   createFarm,
   createPlot,
@@ -40,6 +41,7 @@ interface Campaign {
   endDate?: string;
   description?: string;
   active: boolean;
+  salePricePerTon?: number;
 }
 
 interface Crop {
@@ -87,6 +89,31 @@ export default function Farms() {
     campaignDescription,
     setCampaignDescription,
   ] = useState("");
+
+  const [
+  campaignSalePricePerTon,
+  setCampaignSalePricePerTon,
+] = useState("");
+
+  const [
+  editingCampaignId,
+  setEditingCampaignId,
+] = useState<number | null>(null);
+
+const [
+  editingCampaignName,
+  setEditingCampaignName,
+] = useState("");
+
+const [
+  editingCampaignDescription,
+  setEditingCampaignDescription,
+] = useState("");
+
+const [
+  editingCampaignSalePricePerTon,
+  setEditingCampaignSalePricePerTon,
+] = useState("");
 
   useEffect(() => {
     loadData();
@@ -174,19 +201,63 @@ export default function Farms() {
   };
 
   const handleCreateCampaign = async () => {
-    if (!campaignName.trim()) return;
+  if (!campaignName.trim()) return;
 
-    await createCampaign({
-      name: campaignName,
-      description: campaignDescription,
-      active: true,
-    });
+  await createCampaign({
+    name: campaignName,
+    description: campaignDescription,
+    active: true,
+    salePricePerTon: campaignSalePricePerTon
+      ? Number(campaignSalePricePerTon)
+      : 0,
+  });
 
-    setCampaignName("");
-    setCampaignDescription("");
+  setCampaignName("");
+  setCampaignDescription("");
+  setCampaignSalePricePerTon("");
 
-    await loadData();
-  };
+  await loadData();
+};
+
+const handleStartEditCampaign = (
+  campaign: Campaign,
+) => {
+  setEditingCampaignId(campaign.id);
+  setEditingCampaignName(campaign.name);
+  setEditingCampaignDescription(
+    campaign.description || "",
+  );
+  setEditingCampaignSalePricePerTon(
+    String(campaign.salePricePerTon || ""),
+  );
+};
+
+const handleCancelEditCampaign = () => {
+  setEditingCampaignId(null);
+  setEditingCampaignName("");
+  setEditingCampaignDescription("");
+  setEditingCampaignSalePricePerTon("");
+};
+
+const handleUpdateCampaign = async () => {
+  if (!editingCampaignId) return;
+  if (!editingCampaignName.trim()) return;
+
+  await updateCampaign(editingCampaignId, {
+    name: editingCampaignName,
+    description: editingCampaignDescription,
+    salePricePerTon:
+      editingCampaignSalePricePerTon
+        ? Number(
+            editingCampaignSalePricePerTon,
+          )
+        : 0,
+  });
+
+  handleCancelEditCampaign();
+
+  await loadData();
+};
 
   return (
     <div className="space-y-6">
@@ -403,6 +474,16 @@ export default function Farms() {
             className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500 resize-none"
           />
 
+          <input
+  value={campaignSalePricePerTon}
+  onChange={(event) =>
+    setCampaignSalePricePerTon(event.target.value)
+  }
+  placeholder="Precio por tonelada"
+  type="number"
+  className="w-full rounded-xl bg-slate-950 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
+/>
+
           <button
             onClick={handleCreateCampaign}
             className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold py-3 transition"
@@ -575,12 +656,11 @@ export default function Farms() {
                     {farm.name}
                   </h3>
 
-                  <p className="text-sm text-slate-400">
-                    {farm.location ||
-                      "Sin ubicación"}
+                  <p className="text-sm text-slate-400 mt-2">
+                    {farm.location || "Sin ubicación"}
                   </p>
 
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-emerald-400 mt-2 font-semibold">
                     {farm.area || 0} ha
                   </p>
                 </div>
@@ -590,7 +670,7 @@ export default function Farms() {
                     await deleteFarm(farm.id);
                     await loadData();
                   }}
-                  className="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white text-sm font-semibold transition"
+                  className="px-3 py-2 rounded-lg bg-red-500 hover:bg-red-400 text-white font-semibold transition"
                 >
                   Eliminar
                 </button>
@@ -618,30 +698,96 @@ export default function Farms() {
               className="bg-slate-950 border border-slate-800 rounded-xl p-4"
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="font-semibold">
-                    {campaign.name}
-                  </h3>
-
-                  <p className="text-sm text-slate-400 mt-2">
-                    {campaign.description ||
-                      "Sin descripción"}
-                  </p>
-
-                  <div className="mt-3">
-                    <span
-                      className={
-                        campaign.active
-                          ? "px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                          : "px-3 py-1 rounded-full text-xs bg-red-500/10 text-red-400 border border-red-500/30"
+                {editingCampaignId === campaign.id ? (
+                  <div className="w-full space-y-3">
+                    <input
+                      value={editingCampaignName}
+                      onChange={(event) =>
+                        setEditingCampaignName(
+                          event.target.value,
+                        )
                       }
-                    >
-                      {campaign.active
-                        ? "Activa"
-                        : "Inactiva"}
-                    </span>
+                      className="w-full rounded-xl bg-slate-900 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
+                    />
+
+                    <textarea
+                      value={editingCampaignDescription}
+                      onChange={(event) =>
+                        setEditingCampaignDescription(
+                          event.target.value,
+                        )
+                      }
+                      rows={3}
+                      className="w-full rounded-xl bg-slate-900 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500 resize-none"
+                    />
+
+                    <input
+                      type="number"
+                      value={editingCampaignSalePricePerTon}
+                      onChange={(event) =>
+                        setEditingCampaignSalePricePerTon(
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Precio por tonelada"
+                      className="w-full rounded-xl bg-slate-900 border border-slate-800 px-4 py-3 outline-none focus:border-emerald-500"
+                    />
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleUpdateCampaign}
+                        className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-4 py-2 transition"
+                      >
+                        Guardar
+                      </button>
+
+                      <button
+                        onClick={handleCancelEditCampaign}
+                        className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2 transition"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="w-full">
+                    <h3 className="font-semibold">
+                      {campaign.name}
+                    </h3>
+
+                    <p className="text-sm text-slate-400 mt-2">
+                      {campaign.description ||
+                        "Sin descripción"}
+                    </p>
+
+                    <div className="mt-3">
+                      <span
+                        className={
+                          campaign.active
+                            ? "px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                            : "px-3 py-1 rounded-full text-xs bg-red-500/10 text-red-400 border border-red-500/30"
+                        }
+                      >
+                        {campaign.active
+                          ? "Activa"
+                          : "Inactiva"}
+                      </span>
+
+                      <p className="text-sm text-emerald-400 mt-2 font-semibold">
+                        $ {(campaign.salePricePerTon || 0).toLocaleString("es-AR")} / tn
+                      </p>
+
+                      <button
+                        onClick={() =>
+                          handleStartEditCampaign(campaign)
+                        }
+                        className="mt-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold px-4 py-2 transition"
+                      >
+                        Editar campaña
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

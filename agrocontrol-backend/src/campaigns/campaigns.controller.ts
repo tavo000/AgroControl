@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -46,6 +47,33 @@ export class CampaignsController {
   ) {
     return this.campaignsService.create(
       req.user.tenantId,
+      body,
+    );
+  }
+
+  @Put(':id')
+  async update(
+    @Req() req: any,
+
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
+
+    @Body()
+    body: {
+      name?: string;
+      startDate?: Date;
+      endDate?: Date;
+      description?: string;
+      active?: boolean;
+      salePricePerTon?: number;
+    },
+  ) {
+    return this.campaignsService.update(
+      req.user.tenantId,
+      id,
       body,
     );
   }

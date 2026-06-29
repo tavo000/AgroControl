@@ -79,6 +79,31 @@ export class AgriculturalCostsService {
     };
   }
 
+  private getFinancialStatus(
+    profitabilityRate: number,
+    grossMargin: number,
+    totalCosts: number,
+    salePricePerTon: number,
+  ) {
+    if (salePricePerTon <= 0) {
+      return 'Sin precio';
+    }
+
+    if (totalCosts <= 0) {
+      return 'Sin costos';
+    }
+
+    if (grossMargin < 0) {
+      return 'Negativa';
+    }
+
+    if (profitabilityRate >= 30) {
+      return 'Rentable';
+    }
+
+    return 'Ajustada';
+  }
+
   async getProfitability(tenantId: number) {
     const campaigns =
       await this.prisma.campaign.findMany({
@@ -118,10 +143,12 @@ export class AgriculturalCostsService {
         0,
       );
 
-      const estimatedPricePerTon = 250000;
+      const salePricePerTon = Number(
+        campaign.salePricePerTon || 0,
+      );
 
       const estimatedIncome =
-        totalProduction * estimatedPricePerTon;
+        totalProduction * salePricePerTon;
 
       const grossMargin =
         estimatedIncome - totalCosts;
@@ -136,6 +163,13 @@ export class AgriculturalCostsService {
           ? totalProduction / harvestedArea
           : 0;
 
+      const status = this.getFinancialStatus(
+        profitabilityRate,
+        grossMargin,
+        totalCosts,
+        salePricePerTon,
+      );
+
       return {
         campaignId: campaign.id,
         campaignName: campaign.name,
@@ -143,16 +177,11 @@ export class AgriculturalCostsService {
         totalProduction,
         harvestedArea,
         averageYield,
-        estimatedPricePerTon,
+        salePricePerTon,
         estimatedIncome,
         grossMargin,
         profitabilityRate,
-        status:
-          profitabilityRate >= 30
-            ? 'Rentable'
-            : profitabilityRate >= 0
-              ? 'Ajustada'
-              : 'Negativa',
+        status,
       };
     });
 

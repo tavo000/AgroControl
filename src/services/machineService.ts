@@ -938,6 +938,23 @@ interface CreatePlanningTaskPayload {
   notes?: string;
 }
 
+export async function getPlanningConflicts() {
+  const response = await fetch(
+    "http://localhost:4000/planning-tasks/conflicts",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener conflictos de planificación",
+    );
+  }
+
+  return response.json();
+}
+
 export async function getPlanningTasks() {
   const response = await fetch(
     "http://localhost:4000/planning-tasks",

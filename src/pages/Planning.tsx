@@ -20,6 +20,7 @@ import {
   getFarms,
   getMachines,
   getPlanningTasks,
+  getPlanningConflicts,
   getPlots,
   updatePlanningTaskStatus,
 } from "../services/machineService";
@@ -99,6 +100,13 @@ export default function Planning() {
   const [campaigns, setCampaigns] = useState<
     Campaign[]
   >([]);
+
+  const [conflicts, setConflicts] = useState<{
+    totalTasks: number;
+    overdueTasks: PlanningTask[];
+    criticalTasks: PlanningTask[];
+  } | null>(null);
+
   const [machines, setMachines] = useState<
     Machine[]
   >([]);
@@ -141,13 +149,15 @@ export default function Planning() {
       farmsData,
       plotsData,
       campaignsData,
-      machinesData,
+            machinesData,
+      conflictsData,
     ] = await Promise.all([
       getPlanningTasks(),
       getFarms(),
       getPlots(),
       getCampaigns(),
       getMachines(),
+      getPlanningConflicts(),
     ]);
 
     setTasks(tasksData);
@@ -155,6 +165,7 @@ export default function Planning() {
     setPlots(plotsData);
     setCampaigns(campaignsData);
     setMachines(machinesData);
+    setConflicts(conflictsData);
   };
 
   const filteredPlots = plots.filter(
@@ -337,6 +348,37 @@ export default function Planning() {
           </div>
         ))}
       </div>
+
+            {conflicts && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <p className="text-sm text-slate-400">
+              Tareas activas
+            </p>
+            <h2 className="text-3xl font-bold text-emerald-400 mt-3">
+              {conflicts.totalTasks}
+            </h2>
+          </div>
+
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
+            <p className="text-sm text-red-300">
+              Tareas vencidas
+            </p>
+            <h2 className="text-3xl font-bold text-red-400 mt-3">
+              {conflicts.overdueTasks.length}
+            </h2>
+          </div>
+
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6">
+            <p className="text-sm text-yellow-300">
+              Tareas críticas
+            </p>
+            <h2 className="text-3xl font-bold text-yellow-400 mt-3">
+              {conflicts.criticalTasks.length}
+            </h2>
+          </div>
+        </div>
+      )}
 
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">

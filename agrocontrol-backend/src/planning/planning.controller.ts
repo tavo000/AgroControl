@@ -35,6 +35,15 @@ export class PlanningController {
     );
   }
 
+  @Get('conflicts')
+async getConflicts(
+  @Req() req: any,
+) {
+  return this.planningService.getConflicts(
+    req.user.tenantId,
+  );
+}
+
   @Post()
   async create(
     @Req() req: any,

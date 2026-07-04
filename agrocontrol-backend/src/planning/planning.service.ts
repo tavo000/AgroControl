@@ -18,6 +18,70 @@ export class PlanningService {
     private prisma: PrismaService,
   ) {}
 
+private async validatePlanningConflicts(
+  tenantId: number,
+  body: {
+    plotId: number;
+    machineId?: number;
+    plannedDate: Date;
+    title: string;
+  },
+) {
+  const plannedDate = new Date(body.plannedDate);
+
+  const start = new Date(plannedDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(plannedDate);
+  end.setHours(23, 59, 59, 999);
+
+  // Conflicto por lote
+  const plotConflict =
+    await this.prisma.planningTask.findFirst({
+      where: {
+        tenantId,
+        plotId: Number(body.plotId),
+        plannedDate: {
+          gte: start,
+          lte: end,
+        },
+        status: {
+          not: PlanningTaskStatus.CANCELLED,
+        },
+      },
+    });
+
+  if (plotConflict) {
+    throw new BadRequestException(
+      `El lote ya posee una tarea planificada para esa fecha: "${plotConflict.title}".`,
+    );
+  }
+
+  // Conflicto por maquinaria
+  if (body.machineId) {
+    const machineConflict =
+      await this.prisma.planningTask.findFirst({
+        where: {
+          tenantId,
+          machineId: Number(body.machineId),
+          plannedDate: {
+            gte: start,
+            lte: end,
+          },
+          status: {
+            not: PlanningTaskStatus.CANCELLED,
+          },
+        },
+      });
+
+    if (machineConflict) {
+      throw new BadRequestException(
+        `La maquinaria ya se encuentra asignada a "${machineConflict.title}" para esa fecha.`,
+      );
+    }
+  }
+}
+
   async findAll(tenantId: number) {
     return this.prisma.planningTask.findMany({
       where: {
@@ -127,6 +191,11 @@ export class PlanningService {
       }
     }
 
+    await this.validatePlanningConflicts(
+  tenantId,
+  body,
+);
+
     return this.prisma.planningTask.create({
       data: {
         tenantId,
@@ -168,6 +237,47 @@ export class PlanningService {
       },
     });
   }
+
+  async getConflicts(tenantId: number) {
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  const tasks = await this.prisma.planningTask.findMany({
+    where: {
+      tenantId,
+      status: {
+        not: PlanningTaskStatus.CANCELLED,
+      },
+    },
+    include: {
+      farm: true,
+      plot: true,
+      machine: true,
+      campaign: true,
+    },
+    orderBy: {
+      plannedDate: 'asc',
+    },
+  });
+
+  const overdueTasks = tasks.filter(
+    (task) =>
+      task.status !== PlanningTaskStatus.COMPLETED &&
+      task.plannedDate < today,
+  );
+
+  const criticalTasks = tasks.filter(
+    (task) =>
+      task.priority === PlanningTaskPriority.CRITICAL,
+  );
+
+  return {
+    totalTasks: tasks.length,
+    overdueTasks,
+    criticalTasks,
+  };
+}
 
   async updateStatus(
     tenantId: number,

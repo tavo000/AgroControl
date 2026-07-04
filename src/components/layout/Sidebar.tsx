@@ -9,6 +9,7 @@ import {
   Wheat,
   ReceiptText,
   LineChart,
+  Boxes,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -47,6 +48,11 @@ const items = [
     label: "Finanzas",
     icon: LineChart,
     path: "/financial",
+  },
+  {
+    label: "Inventario",
+    icon: Boxes,
+    path: "/inventory",
   },
   {
     label: "Mapas",

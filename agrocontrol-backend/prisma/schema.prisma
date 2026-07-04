@@ -27,6 +27,23 @@ enum AlertSeverity {
   CRITICAL
 }
 
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum FieldOperationType {
+  SOWING
+  FERTILIZATION
+  SPRAYING
+  IRRIGATION
+  HARVEST
+  SOIL_WORK
+  MAINTENANCE
+  OTHER
+}
+
 model Tenant {
   id        Int      @id @default(autoincrement())
   name      String
@@ -43,6 +60,11 @@ model Tenant {
   harvests    Harvest[]
   campaigns   Campaign[]
   agriculturalCosts AgriculturalCost[]
+  inventoryCategories InventoryCategory[]
+  inventoryItems      InventoryItem[]
+  inventoryMovements  InventoryMovement[]
+  fieldOperations      FieldOperation[]
+  fieldOperationInputs FieldOperationInput[]
 }
 
 model User {
@@ -75,6 +97,7 @@ model Farm {
   active   Boolean @default(true)
 
   plots Plot[]
+  fieldOperations FieldOperation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -95,6 +118,7 @@ model Plot {
   soilType     String?
   lastActivity String?
   crops        Crop[]
+  fieldOperations FieldOperation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,6 +245,8 @@ model Campaign {
   crops Crop[]
 
   costs AgriculturalCost[]
+  inventoryMovements InventoryMovement[]
+  fieldOperations FieldOperation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -248,6 +274,135 @@ model AgriculturalCost {
   costDate DateTime?
 
   supplier String?
+  inventoryMovementId Int?
+  inventoryMovement   InventoryMovement? @relation(fields: [inventoryMovementId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventoryCategory {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  name        String
+  description String?
+  active      Boolean @default(true)
+
+  items InventoryItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventoryItem {
+  id Int @id @default(autoincrement())
+
+  tenantId   Int @default(1)
+  categoryId Int
+
+  tenant   Tenant            @relation(fields: [tenantId], references: [id])
+  category InventoryCategory @relation(fields: [categoryId], references: [id])
+
+  name        String
+  description String?
+  unit        String @default("unidad")
+
+  currentStock Float @default(0)
+  minimumStock Float @default(0)
+
+  averageCost Float @default(0)
+
+  active Boolean @default(true)
+
+  movements InventoryMovement[]
+  fieldOperationInputs FieldOperationInput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InventoryMovement {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+  itemId   Int
+
+  tenant Tenant        @relation(fields: [tenantId], references: [id])
+  item   InventoryItem @relation(fields: [itemId], references: [id])
+
+  campaignId Int?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+
+  type InventoryMovementType
+
+  quantity Float
+  unitCost Float @default(0)
+  totalCost Float @default(0)
+
+  reason      String?
+  supplier    String?
+  movementDate DateTime @default(now())
+
+  agriculturalCosts AgriculturalCost[]
+  fieldOperationInputs FieldOperationInput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FieldOperation {
+  id Int @id @default(autoincrement())
+
+  tenantId   Int @default(1)
+  farmId     Int
+  plotId     Int
+  campaignId Int?
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  farm     Farm      @relation(fields: [farmId], references: [id])
+  plot     Plot      @relation(fields: [plotId], references: [id])
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  type FieldOperationType
+  title String
+  description String?
+
+  operationDate DateTime @default(now())
+
+  areaWorked Float @default(0)
+
+  laborCost Float @default(0)
+  machineryCost Float @default(0)
+  otherCost Float @default(0)
+
+  totalInputCost Float @default(0)
+  totalOperationCost Float @default(0)
+
+  inputs FieldOperationInput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FieldOperationInput {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+  operationId Int
+  itemId Int
+  inventoryMovementId Int?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  operation FieldOperation @relation(fields: [operationId], references: [id])
+  item InventoryItem @relation(fields: [itemId], references: [id])
+  inventoryMovement InventoryMovement? @relation(fields: [inventoryMovementId], references: [id])
+
+  quantity Float
+  unitCost Float @default(0)
+  totalCost Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

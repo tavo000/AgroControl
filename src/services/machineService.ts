@@ -591,3 +591,182 @@ export async function getAgriculturalProfitability() {
 
   return response.json();
 }
+
+interface CreateInventoryCategoryPayload {
+  name: string;
+  description?: string;
+}
+
+interface CreateInventoryItemPayload {
+  categoryId: number;
+  name: string;
+  description?: string;
+  unit?: string;
+  minimumStock?: number;
+  averageCost?: number;
+}
+
+interface CreateInventoryMovementPayload {
+  itemId: number;
+  campaignId?: number;
+  type: "IN" | "OUT" | "ADJUSTMENT";
+  quantity: number;
+  unitCost?: number;
+  reason?: string;
+  supplier?: string;
+  createAgriculturalCost?: boolean;
+}
+
+export async function getInventoryCategories() {
+  const response = await fetch(
+    "http://localhost:4000/inventory/categories",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener categorías de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createInventoryCategory(
+  payload: CreateInventoryCategoryPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/inventory/categories",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear categoría de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteInventoryCategory(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/inventory/categories/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar categoría de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getInventoryItems() {
+  const response = await fetch(
+    "http://localhost:4000/inventory/items",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener insumos de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createInventoryItem(
+  payload: CreateInventoryItemPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/inventory/items",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear insumo de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteInventoryItem(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/inventory/items/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar insumo de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function getInventoryMovements() {
+  const response = await fetch(
+    "http://localhost:4000/inventory/movements",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener movimientos de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createInventoryMovement(
+  payload: CreateInventoryMovementPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/inventory/movements",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear movimiento de inventario",
+    );
+  }
+
+  return response.json();
+}

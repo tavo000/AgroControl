@@ -22,6 +22,8 @@ import { CropsModule } from './crops/crops.module';
 import { HarvestsModule } from './harvests/harvests.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs.module';
+import { InventoryModule } from './inventory/inventory.module';
+import { FieldOperationsModule } from './field-operations/field-operations.module';
 
 
 @Module({
@@ -57,6 +59,10 @@ import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs
     CampaignsModule,
 
     AgriculturalCostsModule,
+
+    InventoryModule,
+
+    FieldOperationsModule,
   ],
 
   controllers: [AppController],

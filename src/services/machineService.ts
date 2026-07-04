@@ -1,12 +1,55 @@
 import type { TelemetryData } from "../types/telemetry";
 
 function getAuthHeaders() {
-  const token =
-    localStorage.getItem("agrocontrol_token") ||
-    localStorage.getItem("token");
+  const preferredKeys = [
+    "agrocontrol_token",
+    "token",
+    "access_token",
+    "accessToken",
+    "jwt",
+  ];
+
+  let token = "";
+
+  for (const key of preferredKeys) {
+    const value = localStorage.getItem(key);
+
+    if (value && value.split(".").length === 3) {
+      token = value;
+      break;
+    }
+
+    if (value) {
+      try {
+        const parsed = JSON.parse(value);
+
+        const possibleToken =
+          parsed?.token ||
+          parsed?.accessToken ||
+          parsed?.access_token ||
+          parsed?.jwt;
+
+        if (
+          possibleToken &&
+          possibleToken.split(".").length === 3
+        ) {
+          token = possibleToken;
+          break;
+        }
+      } catch {
+        // No es JSON, se ignora.
+      }
+    }
+  }
+
+  if (!token) {
+    console.error(
+      "No se encontró un token JWT válido en localStorage.",
+    );
+  }
 
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: token ? `Bearer ${token}` : "",
     "Content-Type": "application/json",
   };
 }
@@ -765,6 +808,95 @@ export async function createInventoryMovement(
   if (!response.ok) {
     throw new Error(
       "Error al crear movimiento de inventario",
+    );
+  }
+
+  return response.json();
+}
+
+interface CreateFieldOperationPayload {
+  farmId: number;
+  plotId: number;
+  campaignId?: number;
+  type:
+    | "SOWING"
+    | "FERTILIZATION"
+    | "SPRAYING"
+    | "IRRIGATION"
+    | "HARVEST"
+    | "SOIL_WORK"
+    | "MAINTENANCE"
+    | "OTHER";
+
+  title: string;
+  description?: string;
+  operationDate?: string;
+
+  areaWorked?: number;
+
+  laborCost?: number;
+  machineryCost?: number;
+  otherCost?: number;
+
+  inputs?: {
+    itemId: number;
+    quantity: number;
+    unitCost?: number;
+  }[];
+}
+
+export async function getFieldOperations() {
+  const response = await fetch(
+    "http://localhost:4000/field-operations",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener labores agrícolas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createFieldOperation(
+  payload: CreateFieldOperationPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/field-operations",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear labor agrícola",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteFieldOperation(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/field-operations/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar labor agrícola",
     );
   }
 

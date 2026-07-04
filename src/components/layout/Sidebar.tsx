@@ -10,6 +10,7 @@ import {
   ReceiptText,
   LineChart,
   Boxes,
+  ClipboardList,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -40,6 +41,16 @@ const items = [
     path: "/harvests",
   },
   {
+    label: "Inventario",
+    icon: Boxes,
+    path: "/inventory",
+  },
+  {
+    label: "Labores",
+    icon: ClipboardList,
+    path: "/field-operations",
+  },
+  {
     label: "Costos Agrícolas",
     icon: ReceiptText,
     path: "/agricultural-costs",
@@ -48,11 +59,6 @@ const items = [
     label: "Finanzas",
     icon: LineChart,
     path: "/financial",
-  },
-  {
-    label: "Inventario",
-    icon: Boxes,
-    path: "/inventory",
   },
   {
     label: "Mapas",

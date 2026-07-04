@@ -23,6 +23,8 @@ import Financial from "../pages/Financial";
 
 import Inventory from "../pages/Inventory";
 
+import FieldOperations from "../pages/FieldOperations";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -105,6 +107,12 @@ export const router =
           path: "/inventory",
 
           element: <Inventory />,
+        },
+
+        {
+          path: "/field-operations",
+
+          element: <FieldOperations />,
         },
       ],
     },

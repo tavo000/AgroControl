@@ -24,6 +24,7 @@ import { CampaignsModule } from './campaigns/campaigns.module';
 import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { FieldOperationsModule } from './field-operations/field-operations.module';
+import { PlanningModule } from './planning/planning.module';
 
 
 @Module({
@@ -63,6 +64,8 @@ import { FieldOperationsModule } from './field-operations/field-operations.modul
     InventoryModule,
 
     FieldOperationsModule,
+
+    PlanningModule,
   ],
 
   controllers: [AppController],

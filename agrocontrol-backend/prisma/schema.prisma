@@ -44,27 +44,43 @@ enum FieldOperationType {
   OTHER
 }
 
+enum PlanningTaskStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum PlanningTaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model Tenant {
   id        Int      @id @default(autoincrement())
   name      String
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  users       User[]
-  machines    Machine[]
-  alerts      Alert[]
-  telemetries Telemetry[]
-  farms       Farm[]
-  plots       Plot[]
-  crops       Crop[]
-  harvests    Harvest[]
-  campaigns   Campaign[]
-  agriculturalCosts AgriculturalCost[]
-  inventoryCategories InventoryCategory[]
-  inventoryItems      InventoryItem[]
-  inventoryMovements  InventoryMovement[]
+  users                User[]
+  machines             Machine[]
+  alerts               Alert[]
+  telemetries          Telemetry[]
+  farms                Farm[]
+  plots                Plot[]
+  crops                Crop[]
+  harvests             Harvest[]
+  campaigns            Campaign[]
+  agriculturalCosts    AgriculturalCost[]
+  inventoryCategories  InventoryCategory[]
+  inventoryItems       InventoryItem[]
+  inventoryMovements   InventoryMovement[]
   fieldOperations      FieldOperation[]
   fieldOperationInputs FieldOperationInput[]
+  planningTasks        PlanningTask[]
 }
 
 model User {
@@ -96,11 +112,12 @@ model Farm {
   area     Float?
   active   Boolean @default(true)
 
-  plots Plot[]
+  plots           Plot[]
   fieldOperations FieldOperation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  planningTasks PlanningTask[]
 }
 
 model Plot {
@@ -111,17 +128,18 @@ model Plot {
   tenant Tenant @relation(fields: [tenantId], references: [id])
   farm   Farm   @relation(fields: [farmId], references: [id])
 
-  name         String
-  area         Float?
-  crop         String?
-  status       String?
-  soilType     String?
-  lastActivity String?
-  crops        Crop[]
+  name            String
+  area            Float?
+  crop            String?
+  status          String?
+  soilType        String?
+  lastActivity    String?
+  crops           Crop[]
   fieldOperations FieldOperation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  planningTasks PlanningTask[]
 }
 
 model Machine {
@@ -141,8 +159,9 @@ model Machine {
 
   active Boolean
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  planningTasks PlanningTask[]
 }
 
 model Telemetry {
@@ -244,25 +263,26 @@ model Campaign {
 
   crops Crop[]
 
-  costs AgriculturalCost[]
+  costs              AgriculturalCost[]
   inventoryMovements InventoryMovement[]
-  fieldOperations FieldOperation[]
+  fieldOperations    FieldOperation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  planningTasks PlanningTask[]
 }
 
 model AgriculturalCost {
   id Int @id @default(autoincrement())
 
-  tenantId Int @default(1)
+  tenantId   Int @default(1)
   campaignId Int
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
   campaign Campaign @relation(fields: [campaignId], references: [id])
 
-  category String
+  category    String
   description String?
 
   quantity Float @default(1)
@@ -273,7 +293,7 @@ model AgriculturalCost {
 
   costDate DateTime?
 
-  supplier String?
+  supplier            String?
   inventoryMovementId Int?
   inventoryMovement   InventoryMovement? @relation(fields: [inventoryMovementId], references: [id])
 
@@ -284,7 +304,7 @@ model AgriculturalCost {
 model InventoryCategory {
   id Int @id @default(autoincrement())
 
-  tenantId Int @default(1)
+  tenantId Int    @default(1)
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   name        String
@@ -308,7 +328,7 @@ model InventoryItem {
 
   name        String
   description String?
-  unit        String @default("unidad")
+  unit        String  @default("unidad")
 
   currentStock Float @default(0)
   minimumStock Float @default(0)
@@ -317,7 +337,7 @@ model InventoryItem {
 
   active Boolean @default(true)
 
-  movements InventoryMovement[]
+  movements            InventoryMovement[]
   fieldOperationInputs FieldOperationInput[]
 
   createdAt DateTime @default(now())
@@ -338,15 +358,15 @@ model InventoryMovement {
 
   type InventoryMovementType
 
-  quantity Float
-  unitCost Float @default(0)
+  quantity  Float
+  unitCost  Float @default(0)
   totalCost Float @default(0)
 
-  reason      String?
-  supplier    String?
+  reason       String?
+  supplier     String?
   movementDate DateTime @default(now())
 
-  agriculturalCosts AgriculturalCost[]
+  agriculturalCosts    AgriculturalCost[]
   fieldOperationInputs FieldOperationInput[]
 
   createdAt DateTime @default(now())
@@ -356,7 +376,7 @@ model InventoryMovement {
 model FieldOperation {
   id Int @id @default(autoincrement())
 
-  tenantId   Int @default(1)
+  tenantId   Int  @default(1)
   farmId     Int
   plotId     Int
   campaignId Int?
@@ -366,44 +386,99 @@ model FieldOperation {
   plot     Plot      @relation(fields: [plotId], references: [id])
   campaign Campaign? @relation(fields: [campaignId], references: [id])
 
-  type FieldOperationType
-  title String
+  type        FieldOperationType
+  title       String
   description String?
 
   operationDate DateTime @default(now())
 
   areaWorked Float @default(0)
 
-  laborCost Float @default(0)
+  laborCost     Float @default(0)
   machineryCost Float @default(0)
-  otherCost Float @default(0)
+  otherCost     Float @default(0)
 
-  totalInputCost Float @default(0)
+  totalInputCost     Float @default(0)
   totalOperationCost Float @default(0)
 
   inputs FieldOperationInput[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  planningTaskId Int?
+
+  planningTask PlanningTask? @relation(fields: [planningTaskId], references: [id])
 }
 
 model FieldOperationInput {
   id Int @id @default(autoincrement())
 
-  tenantId Int @default(1)
-  operationId Int
-  itemId Int
+  tenantId            Int  @default(1)
+  operationId         Int
+  itemId              Int
   inventoryMovementId Int?
 
-  tenant Tenant @relation(fields: [tenantId], references: [id])
-  operation FieldOperation @relation(fields: [operationId], references: [id])
-  item InventoryItem @relation(fields: [itemId], references: [id])
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  operation         FieldOperation     @relation(fields: [operationId], references: [id])
+  item              InventoryItem      @relation(fields: [itemId], references: [id])
   inventoryMovement InventoryMovement? @relation(fields: [inventoryMovementId], references: [id])
 
-  quantity Float
-  unitCost Float @default(0)
+  quantity  Float
+  unitCost  Float @default(0)
   totalCost Float @default(0)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlanningTask {
+  id Int @id @default(autoincrement())
+
+  tenantId Int @default(1)
+
+  farmId Int
+
+  plotId Int
+
+  campaignId Int?
+
+  machineId Int?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  farm Farm @relation(fields: [farmId], references: [id])
+
+  plot Plot @relation(fields: [plotId], references: [id])
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  machine Machine? @relation(fields: [machineId], references: [id])
+
+  title String
+
+  description String?
+
+  operationType FieldOperationType
+
+  status PlanningTaskStatus @default(PLANNED)
+
+  priority PlanningTaskPriority @default(MEDIUM)
+
+  plannedDate DateTime
+
+  estimatedArea Float?
+
+  estimatedDuration Float?
+
+  estimatedCost Float?
+
+  assignedOperator String?
+
+  notes String?
+
+  fieldOperations FieldOperation[]
+
+  createdAt DateTime @default(now())
+
   updatedAt DateTime @updatedAt
 }

@@ -25,6 +25,8 @@ import Inventory from "../pages/Inventory";
 
 import FieldOperations from "../pages/FieldOperations";
 
+import Planning from "../pages/Planning";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -113,6 +115,12 @@ export const router =
           path: "/field-operations",
 
           element: <FieldOperations />,
+        },
+
+        {
+          path: "/planning",
+
+          element: <Planning />,
         },
       ],
     },

@@ -11,6 +11,7 @@ import {
   LineChart,
   Boxes,
   ClipboardList,
+  CalendarDays,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -49,6 +50,11 @@ const items = [
     label: "Labores",
     icon: ClipboardList,
     path: "/field-operations",
+  },
+  {
+    label: "Planificación",
+    icon: CalendarDays,
+    path: "/planning",
   },
   {
     label: "Costos Agrícolas",

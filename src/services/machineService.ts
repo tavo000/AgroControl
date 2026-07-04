@@ -902,3 +902,121 @@ export async function deleteFieldOperation(
 
   return response.json();
 }
+
+interface CreatePlanningTaskPayload {
+  farmId: number;
+  plotId: number;
+  campaignId?: number;
+  machineId?: number;
+  title: string;
+  description?: string;
+  operationType:
+    | "SOWING"
+    | "FERTILIZATION"
+    | "SPRAYING"
+    | "IRRIGATION"
+    | "HARVEST"
+    | "SOIL_WORK"
+    | "MAINTENANCE"
+    | "OTHER";
+  status?:
+    | "PLANNED"
+    | "IN_PROGRESS"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "POSTPONED";
+  priority?:
+    | "LOW"
+    | "MEDIUM"
+    | "HIGH"
+    | "CRITICAL";
+  plannedDate: string;
+  estimatedArea?: number;
+  estimatedDuration?: number;
+  estimatedCost?: number;
+  assignedOperator?: string;
+  notes?: string;
+}
+
+export async function getPlanningTasks() {
+  const response = await fetch(
+    "http://localhost:4000/planning-tasks",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener tareas planificadas",
+    );
+  }
+
+  return response.json();
+}
+
+export async function createPlanningTask(
+  payload: CreatePlanningTaskPayload,
+) {
+  const response = await fetch(
+    "http://localhost:4000/planning-tasks",
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al crear tarea planificada",
+    );
+  }
+
+  return response.json();
+}
+
+export async function updatePlanningTaskStatus(
+  id: number,
+  status:
+    | "PLANNED"
+    | "IN_PROGRESS"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "POSTPONED",
+) {
+  const response = await fetch(
+    `http://localhost:4000/planning-tasks/${id}/status`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al actualizar estado de planificación",
+    );
+  }
+
+  return response.json();
+}
+
+export async function deletePlanningTask(id: number) {
+  const response = await fetch(
+    `http://localhost:4000/planning-tasks/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al eliminar tarea planificada",
+    );
+  }
+
+  return response.json();
+}

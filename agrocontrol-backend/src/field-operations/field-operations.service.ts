@@ -6,6 +6,7 @@ import {
 
 import {
   FieldOperationType,
+  FieldOperationStatus,
   InventoryMovementType,
 } from '@prisma/client';
 
@@ -50,6 +51,14 @@ export class FieldOperationsService {
       title: string;
       description?: string;
       operationDate?: Date;
+      status?: FieldOperationStatus;
+      actualStartDate?: Date;
+      actualEndDate?: Date;
+      assignedOperator?: string;
+      machineHours?: number;
+      operatorHours?: number;
+      fuelConsumed?: number;
+      executionNotes?: string;
       areaWorked?: number;
       laborCost?: number;
       machineryCost?: number;
@@ -152,9 +161,35 @@ export class FieldOperationsService {
                 type: body.type,
             title: body.title,
             description: body.description,
-            operationDate: body.operationDate
+                       operationDate: body.operationDate
               ? new Date(body.operationDate)
               : new Date(),
+                        status:
+              body.status ??
+              (body.planningTaskId
+                ? FieldOperationStatus.IN_PROGRESS
+                : FieldOperationStatus.PENDING),
+                        actualStartDate: body.actualStartDate
+              ? new Date(body.actualStartDate)
+              : body.planningTaskId
+                ? new Date()
+                : undefined,
+            actualEndDate: body.actualEndDate
+              ? new Date(body.actualEndDate)
+              : undefined,
+            assignedOperator:
+              body.assignedOperator,
+            machineHours: Number(
+              body.machineHours || 0,
+            ),
+            operatorHours: Number(
+              body.operatorHours || 0,
+            ),
+            fuelConsumed: Number(
+              body.fuelConsumed || 0,
+            ),
+            executionNotes:
+              body.executionNotes,
             areaWorked: Number(body.areaWorked || 0),
             laborCost: Number(body.laborCost || 0),
             machineryCost: Number(

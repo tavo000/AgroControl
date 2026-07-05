@@ -59,6 +59,14 @@ enum PlanningTaskPriority {
   CRITICAL
 }
 
+enum FieldOperationStatus {
+  PENDING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
 model Tenant {
   id        Int      @id @default(autoincrement())
   name      String
@@ -391,6 +399,19 @@ model FieldOperation {
   description String?
 
   operationDate DateTime @default(now())
+
+  status FieldOperationStatus @default(PENDING)
+
+  actualStartDate DateTime?
+  actualEndDate   DateTime?
+
+  assignedOperator String?
+
+  machineHours  Float @default(0)
+  operatorHours Float @default(0)
+  fuelConsumed  Float @default(0)
+
+  executionNotes String?
 
   areaWorked Float @default(0)
 

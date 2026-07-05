@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock,
   Flag,
+  PlayCircle,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 import {
   createPlanningTask,
   deletePlanningTask,
+  executePlanningTask,
   getCampaigns,
   getFarms,
   getMachines,
@@ -76,13 +78,6 @@ const operationLabels: Record<string, string> = {
   OTHER: "Otro",
 };
 
-const statusLabels: Record<string, string> = {
-  PLANNED: "Planificada",
-  IN_PROGRESS: "En curso",
-  COMPLETED: "Completada",
-  CANCELLED: "Cancelada",
-  POSTPONED: "Postergada",
-};
 
 const priorityLabels: Record<string, string> = {
   LOW: "Baja",
@@ -775,8 +770,31 @@ export default function Planning() {
                   </td>
 
                   <td className="px-6 py-4">
+                    <div className="mb-2">
+  <span
+    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold
+      ${
+        task.status === "COMPLETED"
+          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+          : task.status === "IN_PROGRESS"
+          ? "bg-blue-500/20 text-blue-400 border border-blue-500/40"
+          : task.status === "PLANNED"
+          ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+          : task.status === "POSTPONED"
+          ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"
+          : "bg-red-500/20 text-red-400 border border-red-500/40"
+      }`}
+  >
+    {task.status === "PLANNED" && "Planificada"}
+    {task.status === "IN_PROGRESS" && "En curso"}
+    {task.status === "COMPLETED" && "Completada"}
+    {task.status === "POSTPONED" && "Postergada"}
+    {task.status === "CANCELLED" && "Cancelada"}
+  </span>
+</div>
                     <select
                       value={task.status}
+                      
                       onChange={async (event) => {
                         await updatePlanningTaskStatus(
                           task.id,
@@ -823,18 +841,36 @@ export default function Planning() {
                   </td>
 
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={async () => {
-                        await deletePlanningTask(
-                          task.id,
-                        );
-                        await loadData();
-                      }}
-                      className="rounded-lg bg-red-500 hover:bg-red-400 text-white px-3 py-2 transition inline-flex items-center gap-2"
-                    >
-                      <Trash2 size={16} />
-                      Eliminar
-                    </button>
+                                        <div className="flex justify-end gap-2">
+                      {task.status !== "COMPLETED" &&
+                        task.status !== "CANCELLED" && (
+                          <button
+                            onClick={async () => {
+                              await executePlanningTask(
+                                task.id,
+                              );
+                              await loadData();
+                            }}
+                            className="rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3 py-2 transition inline-flex items-center gap-2 font-semibold"
+                          >
+                            <PlayCircle size={16} />
+                            Ejecutar
+                          </button>
+                        )}
+
+                      <button
+                        onClick={async () => {
+                          await deletePlanningTask(
+                            task.id,
+                          );
+                          await loadData();
+                        }}
+                        className="rounded-lg bg-red-500 hover:bg-red-400 text-white px-3 py-2 transition inline-flex items-center gap-2"
+                      >
+                        <Trash2 size={16} />
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

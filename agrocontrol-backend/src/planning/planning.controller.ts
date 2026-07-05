@@ -72,6 +72,17 @@ async getConflicts(
     );
   }
 
+  @Patch(':id/execute')
+async executeTask(
+  @Req() req: any,
+  @Param('id', ParseIntPipe) id: number,
+) {
+  return this.planningService.executeTask(
+    req.user.tenantId,
+    id,
+  );
+}
+
   @Patch(':id/status')
   async updateStatus(
     @Req() req: any,

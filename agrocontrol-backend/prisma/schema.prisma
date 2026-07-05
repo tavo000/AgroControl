@@ -472,6 +472,14 @@ model PlanningTask {
 
   estimatedCost Float?
 
+  actualStartDate DateTime?
+  actualEndDate   DateTime?
+
+  progress Float @default(0)
+
+  actualDuration Float?
+  actualCost     Float?
+
   assignedOperator String?
 
   notes String?

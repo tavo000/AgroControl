@@ -1037,3 +1037,24 @@ export async function deletePlanningTask(id: number) {
 
   return response.json();
 }
+
+
+export async function executePlanningTask(
+  id: number,
+) {
+  const response = await fetch(
+    `http://localhost:4000/planning-tasks/${id}/execute`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al ejecutar la planificación",
+    );
+  }
+
+  return response.json();
+}

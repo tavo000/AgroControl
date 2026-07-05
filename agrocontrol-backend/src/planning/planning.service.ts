@@ -18,52 +18,28 @@ export class PlanningService {
     private prisma: PrismaService,
   ) {}
 
-private async validatePlanningConflicts(
-  tenantId: number,
-  body: {
-    plotId: number;
-    machineId?: number;
-    plannedDate: Date;
-    title: string;
-  },
-) {
-  const plannedDate = new Date(body.plannedDate);
+  private async validatePlanningConflicts(
+    tenantId: number,
+    body: {
+      plotId: number;
+      machineId?: number;
+      plannedDate: Date;
+      title: string;
+    },
+  ) {
+    const plannedDate = new Date(body.plannedDate);
 
-  const start = new Date(plannedDate);
-  start.setHours(0, 0, 0, 0);
+    const start = new Date(plannedDate);
+    start.setHours(0, 0, 0, 0);
 
-  const end = new Date(plannedDate);
-  end.setHours(23, 59, 59, 999);
+    const end = new Date(plannedDate);
+    end.setHours(23, 59, 59, 999);
 
-  // Conflicto por lote
-  const plotConflict =
-    await this.prisma.planningTask.findFirst({
-      where: {
-        tenantId,
-        plotId: Number(body.plotId),
-        plannedDate: {
-          gte: start,
-          lte: end,
-        },
-        status: {
-          not: PlanningTaskStatus.CANCELLED,
-        },
-      },
-    });
-
-  if (plotConflict) {
-    throw new BadRequestException(
-      `El lote ya posee una tarea planificada para esa fecha: "${plotConflict.title}".`,
-    );
-  }
-
-  // Conflicto por maquinaria
-  if (body.machineId) {
-    const machineConflict =
+    const plotConflict =
       await this.prisma.planningTask.findFirst({
         where: {
           tenantId,
-          machineId: Number(body.machineId),
+          plotId: Number(body.plotId),
           plannedDate: {
             gte: start,
             lte: end,
@@ -74,13 +50,35 @@ private async validatePlanningConflicts(
         },
       });
 
-    if (machineConflict) {
+    if (plotConflict) {
       throw new BadRequestException(
-        `La maquinaria ya se encuentra asignada a "${machineConflict.title}" para esa fecha.`,
+        `El lote ya posee una tarea planificada para esa fecha: "${plotConflict.title}".`,
       );
     }
+
+    if (body.machineId) {
+      const machineConflict =
+        await this.prisma.planningTask.findFirst({
+          where: {
+            tenantId,
+            machineId: Number(body.machineId),
+            plannedDate: {
+              gte: start,
+              lte: end,
+            },
+            status: {
+              not: PlanningTaskStatus.CANCELLED,
+            },
+          },
+        });
+
+      if (machineConflict) {
+        throw new BadRequestException(
+          `La maquinaria ya se encuentra asignada a "${machineConflict.title}" para esa fecha.`,
+        );
+      }
+    }
   }
-}
 
   async findAll(tenantId: number) {
     return this.prisma.planningTask.findMany({
@@ -192,9 +190,9 @@ private async validatePlanningConflicts(
     }
 
     await this.validatePlanningConflicts(
-  tenantId,
-  body,
-);
+      tenantId,
+      body,
+    );
 
     return this.prisma.planningTask.create({
       data: {
@@ -239,45 +237,170 @@ private async validatePlanningConflicts(
   }
 
   async getConflicts(tenantId: number) {
-  const today = new Date();
+    const today = new Date();
 
-  today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
 
-  const tasks = await this.prisma.planningTask.findMany({
-    where: {
-      tenantId,
-      status: {
-        not: PlanningTaskStatus.CANCELLED,
-      },
-    },
-    include: {
-      farm: true,
-      plot: true,
-      machine: true,
-      campaign: true,
-    },
-    orderBy: {
-      plannedDate: 'asc',
-    },
-  });
+    const tasks =
+      await this.prisma.planningTask.findMany({
+        where: {
+          tenantId,
+          status: {
+            not: PlanningTaskStatus.CANCELLED,
+          },
+        },
+        include: {
+          farm: true,
+          plot: true,
+          machine: true,
+          campaign: true,
+        },
+        orderBy: {
+          plannedDate: 'asc',
+        },
+      });
 
-  const overdueTasks = tasks.filter(
-    (task) =>
-      task.status !== PlanningTaskStatus.COMPLETED &&
-      task.plannedDate < today,
-  );
+    const overdueTasks = tasks.filter(
+      (task) =>
+        task.status !==
+          PlanningTaskStatus.COMPLETED &&
+        task.plannedDate < today,
+    );
 
-  const criticalTasks = tasks.filter(
-    (task) =>
-      task.priority === PlanningTaskPriority.CRITICAL,
-  );
+    const criticalTasks = tasks.filter(
+      (task) =>
+        task.priority ===
+        PlanningTaskPriority.CRITICAL,
+    );
 
-  return {
-    totalTasks: tasks.length,
-    overdueTasks,
-    criticalTasks,
-  };
-}
+    return {
+      totalTasks: tasks.length,
+      overdueTasks,
+      criticalTasks,
+    };
+  }
+
+  async executeTask(
+    tenantId: number,
+    id: number,
+  ) {
+    const task =
+      await this.prisma.planningTask.findFirst({
+        where: {
+          id,
+          tenantId,
+        },
+        include: {
+          fieldOperations: true,
+        },
+      });
+
+    if (!task) {
+      throw new NotFoundException(
+        'La tarea planificada no existe o no pertenece a este tenant.',
+      );
+    }
+
+    if (task.status === PlanningTaskStatus.CANCELLED) {
+      throw new BadRequestException(
+        'No se puede ejecutar una tarea cancelada.',
+      );
+    }
+
+    if (task.fieldOperations.length > 0) {
+      throw new BadRequestException(
+        'Esta planificación ya fue ejecutada como labor agrícola.',
+      );
+    }
+
+    const estimatedCost = Number(
+      task.estimatedCost || 0,
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      const operation =
+        await tx.fieldOperation.create({
+          data: {
+            tenantId,
+            farmId: task.farmId,
+            plotId: task.plotId,
+            campaignId: task.campaignId ?? undefined,
+            planningTaskId: task.id,
+            type: task.operationType,
+            title: task.title,
+            description: task.description,
+            operationDate: new Date(),
+            areaWorked: Number(
+              task.estimatedArea || 0,
+            ),
+            laborCost: 0,
+            machineryCost: 0,
+            otherCost: estimatedCost,
+            totalInputCost: 0,
+            totalOperationCost: estimatedCost,
+          },
+          include: {
+            farm: true,
+            plot: true,
+            campaign: true,
+            inputs: {
+              include: {
+                item: true,
+                inventoryMovement: true,
+              },
+            },
+          },
+        });
+
+      if (task.campaignId && estimatedCost > 0) {
+        await tx.agriculturalCost.create({
+          data: {
+            tenantId,
+            campaignId: task.campaignId,
+            category: 'Labor planificada',
+            description: task.title,
+            quantity: 1,
+            unitCost: estimatedCost,
+            totalCost: estimatedCost,
+            costDate: new Date(),
+          },
+        });
+      }
+
+      const updatedTask =
+        await tx.planningTask.update({
+          where: {
+            id: task.id,
+          },
+          data: {
+                status: PlanningTaskStatus.COMPLETED,
+
+                progress: 100,
+
+              actualStartDate: new Date(),
+
+                actualEndDate: new Date(),
+
+                actualDuration:
+                task.estimatedDuration ?? 0,
+
+                actualCost: estimatedCost,
+              },
+          include: {
+            farm: true,
+            plot: true,
+            campaign: true,
+            machine: true,
+            fieldOperations: true,
+          },
+        });
+
+      return {
+        task: updatedTask,
+        fieldOperation: operation,
+      };
+    });
+  }
 
   async updateStatus(
     tenantId: number,

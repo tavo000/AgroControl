@@ -45,6 +45,7 @@ export class FieldOperationsService {
       farmId: number;
       plotId: number;
       campaignId?: number;
+      planningTaskId?: number;
       type: FieldOperationType;
       title: string;
       description?: string;
@@ -144,8 +145,11 @@ export class FieldOperationsService {
             plotId: Number(body.plotId),
             campaignId: body.campaignId
               ? Number(body.campaignId)
-              : undefined,
-            type: body.type,
+                : undefined,
+              planningTaskId: body.planningTaskId
+              ? Number(body.planningTaskId)
+                : undefined,
+                type: body.type,
             title: body.title,
             description: body.description,
             operationDate: body.operationDate
@@ -264,6 +268,23 @@ export class FieldOperationsService {
             },
           },
         });
+
+        if (body.planningTaskId) {
+  await tx.planningTask.update({
+    where: {
+      id: Number(body.planningTaskId),
+    },
+    data: {
+      status: 'COMPLETED',
+      progress: 100,
+      actualStartDate: body.operationDate
+        ? new Date(body.operationDate)
+        : new Date(),
+      actualEndDate: new Date(),
+      actualCost: totalOperationCost,
+    },
+  });
+}
 
       if (body.campaignId && totalOperationCost > 0) {
         await tx.agriculturalCost.create({

@@ -52,18 +52,41 @@ interface PlanningTask {
   id: number;
   title: string;
   description?: string;
+
   operationType: string;
+
   status: string;
+
   priority: string;
+
   plannedDate: string;
+
   estimatedArea?: number;
+
   estimatedDuration?: number;
+
   estimatedCost?: number;
+
+  actualStartDate?: string;
+
+  actualEndDate?: string;
+
+  actualDuration?: number;
+
+  actualCost?: number;
+
+  progress?: number;
+
   assignedOperator?: string;
+
   notes?: string;
+
   farm?: Farm;
+
   plot?: Plot;
+
   campaign?: Campaign;
+
   machine?: Machine;
 }
 
@@ -731,6 +754,9 @@ export default function Planning() {
                 <th className="text-left px-6 py-4">
                   Costo
                 </th>
+                <th className="text-left px-6 py-4">
+                  Progreso
+                </th>
                 <th className="text-right px-6 py-4">
                   Acciones
                 </th>
@@ -833,12 +859,66 @@ export default function Planning() {
                       task.priority}
                   </td>
 
-                  <td className="px-6 py-4 text-emerald-400 font-semibold">
-                    ${" "}
-                    {Number(
-                      task.estimatedCost || 0,
-                    ).toLocaleString("es-AR")}
-                  </td>
+                  <td className="px-6 py-4">
+  <div className="flex flex-col">
+    <span className="font-semibold text-emerald-400">
+      $
+      {" "}
+      {Number(
+        task.estimatedCost || 0,
+      ).toLocaleString("es-AR")}
+    </span>
+
+    {task.actualCost !== undefined && (
+      <span className="text-xs text-cyan-400">
+        Real:
+        {" "}
+        $
+        {" "}
+        {Number(
+          task.actualCost,
+        ).toLocaleString("es-AR")}
+      </span>
+    )}
+  </div>
+</td>
+
+<td className="px-6 py-4">
+  <div className="flex flex-col gap-2">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700">
+      <div
+        className="h-2 rounded-full bg-emerald-500 transition-all"
+        style={{
+          width: `${task.progress ?? 0}%`,
+        }}
+      />
+    </div>
+
+    <span className="text-xs text-slate-300">
+      {task.progress ?? 0}%
+    </span>
+
+    {task.actualStartDate && (
+      <span className="text-xs text-slate-500">
+        Inicio:
+        {" "}
+        {new Date(
+          task.actualStartDate,
+        ).toLocaleDateString("es-AR")}
+      </span>
+    )}
+
+    {task.actualEndDate && (
+      <span className="text-xs text-slate-500">
+        Fin:
+        {" "}
+        {new Date(
+          task.actualEndDate,
+        ).toLocaleDateString("es-AR")}
+      </span>
+    )}
+  </div>
+</td>
 
                   <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">

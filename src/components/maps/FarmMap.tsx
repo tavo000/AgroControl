@@ -1,7 +1,6 @@
 import {
   MapContainer,
   TileLayer,
-  Marker,
   Popup,
   Polygon,
   ZoomControl,
@@ -14,6 +13,8 @@ import {
   getHarvests,
   getPlots,
 } from "../../services/machineService";
+
+import MachineMarker from "./MachineMarker";
 
 interface MapMachine {
   id: number;
@@ -48,6 +49,7 @@ interface Crop {
     name: string;
   };
 }
+
 
 interface Harvest {
   id: number;
@@ -109,6 +111,7 @@ function getCropColor(cropName?: string) {
 }
 
 export default function FarmMap() {
+
   const [machines, setMachines] =
     useState<MapMachine[]>([]);
 
@@ -120,6 +123,15 @@ export default function FarmMap() {
 
   const [harvests, setHarvests] =
     useState<Harvest[]>([]);
+
+    const [showMachines, setShowMachines] =
+    useState(true);
+
+  const [showPlots, setShowPlots] =
+    useState(true);
+
+  const [showCrops, setShowCrops] =
+    useState(true);
 
   useEffect(() => {
     loadMapData();
@@ -179,6 +191,7 @@ export default function FarmMap() {
     setMachines(data);
   };
 
+
   const visiblePlots =
     plots.length > 0
       ? plots
@@ -192,7 +205,49 @@ export default function FarmMap() {
         ];
 
   return (
-    <MapContainer
+  <div className="relative h-full w-full">
+    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-4 py-3">
+
+  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+    Capas GIS
+  </span>
+
+  <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1 text-xs">
+    <input
+      type="checkbox"
+      checked={showMachines}
+      onChange={() =>
+        setShowMachines(!showMachines)
+      }
+    />
+    🚜 Maquinaria
+  </label>
+
+  <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1 text-xs">
+    <input
+      type="checkbox"
+      checked={showPlots}
+      onChange={() =>
+        setShowPlots(!showPlots)
+      }
+    />
+    🟩 Lotes
+  </label>
+
+  <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1 text-xs">
+    <input
+      type="checkbox"
+      checked={showCrops}
+      onChange={() =>
+        setShowCrops(!showCrops)
+      }
+    />
+    🌾 Cultivos
+  </label>
+
+</div>
+
+<MapContainer
       center={[-32.95, -61.3]}
       zoom={13}
       zoomControl={false}
@@ -209,7 +264,8 @@ export default function FarmMap() {
 
       <ZoomControl position="topright" />
 
-      {visiblePlots.map((plot, index) => {
+
+            {showPlots && visiblePlots.map((plot, index) => {
         const crop = crops.find(
           (item) => item.plotId === plot.id,
         );
@@ -226,9 +282,9 @@ export default function FarmMap() {
             index % basePolygons.length
           ];
 
-        const color = getCropColor(
-          crop?.name || plot.crop,
-        );
+        const color = showCrops
+          ? getCropColor(crop?.name || plot.crop)
+          : "#64748b";
 
         return (
           <Polygon
@@ -346,81 +402,14 @@ export default function FarmMap() {
         );
       })}
 
-      {machines.map((machine) => (
-        <Marker
-          key={machine.id}
-          position={[
-            machine.lat,
-            machine.lng,
-          ]}
-        >
-          <Popup
-            minWidth={230}
-            maxWidth={280}
-          >
-            <div
-              style={{
-                width: "230px",
-                fontFamily:
-                  "Inter, system-ui, sans-serif",
-              }}
-            >
-              <strong
-                style={{
-                  display: "block",
-                  fontSize: "15px",
-                  marginBottom: "8px",
-                  color: "#111827",
-                }}
-              >
-                {machine.name}
-              </strong>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: "6px",
-                  fontSize: "13px",
-                  color: "#374151",
-                }}
-              >
-                <div>
-                  <strong>Combustible:</strong>{" "}
-                  {machine.fuel.toFixed(0)}%
-                </div>
-
-                <div>
-                  <strong>Temperatura:</strong>{" "}
-                  {machine.temperature.toFixed(0)}
-                  °C
-                </div>
-
-                <div>
-                  <strong>Velocidad:</strong>{" "}
-                  {machine.speed.toFixed(0)}
-                  km/h
-                </div>
-
-                <div>
-                  <strong>Estado:</strong>{" "}
-                  <span
-                    style={{
-                      color: machine.active
-                        ? "#059669"
-                        : "#dc2626",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {machine.active
-                      ? "Activa"
-                      : "Inactiva"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+            {showMachines &&
+        machines.map((machine) => (
+          <MachineMarker
+            key={machine.id}
+            machine={machine}
+          />
+        ))}
     </MapContainer>
+    </div>
   );
 }

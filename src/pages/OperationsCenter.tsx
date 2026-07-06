@@ -5,7 +5,6 @@ import {
   Boxes,
   CircleDollarSign,
   ClipboardList,
-  Gauge,
   RadioTower,
   Tractor,
   Wheat,
@@ -187,9 +186,36 @@ export default function OperationsCenter() {
             </div>
           </div>
 
-          <div className="mt-6 h-80 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
-            <FarmMap />
-        </div>
+          <div className="mt-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
+    <div>
+      <p className="text-sm font-semibold text-white">
+        Mapa GIS Operativo
+      </p>
+      <p className="text-xs text-slate-400">
+        Maquinaria, lotes y eventos operativos.
+      </p>
+    </div>
+
+    <div className="flex flex-wrap gap-2 text-xs">
+      <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-400">
+        Tiempo real
+      </span>
+
+      <span className="rounded-full bg-violet-500/10 px-3 py-1 text-violet-400">
+        Máquinas: {overview?.machines.active ?? 0}
+      </span>
+
+      <span className="rounded-full bg-yellow-500/10 px-3 py-1 text-yellow-400">
+        Alertas: {(overview?.alerts.high ?? 0) + (overview?.alerts.critical ?? 0)}
+      </span>
+    </div>
+  </div>
+
+  <div className="h-80">
+    <FarmMap />
+  </div>
+</div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">

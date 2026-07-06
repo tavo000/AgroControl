@@ -25,6 +25,7 @@ import { AgriculturalCostsModule } from './agricultural-costs/agricultural-costs
 import { InventoryModule } from './inventory/inventory.module';
 import { FieldOperationsModule } from './field-operations/field-operations.module';
 import { PlanningModule } from './planning/planning.module';
+import { OperationsCenterModule } from './operations-center/operations-center.module';
 
 
 @Module({
@@ -66,6 +67,8 @@ import { PlanningModule } from './planning/planning.module';
     FieldOperationsModule,
 
     PlanningModule,
+
+    OperationsCenterModule,
   ],
 
   controllers: [AppController],

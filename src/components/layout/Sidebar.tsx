@@ -12,6 +12,7 @@ import {
   Boxes,
   ClipboardList,
   CalendarDays,
+  RadioTower,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -26,6 +27,11 @@ const items = [
     icon: LayoutDashboard,
     path: "/dashboard",
   },
+  {
+  label: "Centro Operativo",
+  icon: RadioTower,
+  path: "/operations-center",
+},
   {
     label: "Maquinaria",
     icon: Tractor,

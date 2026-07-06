@@ -27,6 +27,8 @@ import FieldOperations from "../pages/FieldOperations";
 
 import Planning from "../pages/Planning";
 
+import OperationsCenter from "../pages/OperationsCenter";
+
 import Login from "../pages/Login";
 
 import PrivateRoute from "./PrivateRoute";
@@ -122,6 +124,11 @@ export const router =
 
           element: <Planning />,
         },
+        {
+          path: "/operations-center",
+
+          element: <OperationsCenter />,
+      },
       ],
     },
   ]);

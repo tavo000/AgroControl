@@ -1058,3 +1058,20 @@ export async function executePlanningTask(
 
   return response.json();
 }
+
+export async function getOperationsCenterOverview() {
+  const response = await fetch(
+    "http://localhost:4000/operations-center/overview",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener el Centro de Operaciones",
+    );
+  }
+
+  return response.json();
+}

@@ -141,41 +141,62 @@ export class IotGateway
     return machine;
   }
 
-  private async createAlertsIfNeeded(
+    private async createAlertsIfNeeded(
     machine: MachinePayload,
   ) {
-    if (machine.fuel < 20) {
-      await this.prisma.alert.create({
-        data: {
-          machineName: machine.name,
-          type: 'LOW_FUEL',
-          severity: 'HIGH',
-          message:
-            'Combustible por debajo del 20%',
-        },
-      });
-    }
+    const tenantId = 1;
 
-    if (machine.temperature > 78) {
-      await this.prisma.alert.create({
-        data: {
-          machineName: machine.name,
-          type: 'HIGH_TEMPERATURE',
-          severity: 'HIGH',
-          message:
-            'Temperatura elevada detectada',
-        },
-      });
-    }
+    const alertRules = [
+      {
+        condition: machine.fuel < 20,
+        type: 'LOW_FUEL',
+        severity: 'HIGH',
+        message:
+          'Combustible por debajo del 20%',
+      },
+      {
+        condition: machine.temperature > 78,
+        type: 'HIGH_TEMPERATURE',
+        severity: 'HIGH',
+        message:
+          'Temperatura elevada detectada',
+      },
+      {
+        condition: machine.speed > 38,
+        type: 'HIGH_SPEED',
+        severity: 'MEDIUM',
+        message:
+          'Velocidad operativa elevada',
+      },
+    ] as const;
 
-    if (machine.speed > 38) {
+    for (const rule of alertRules) {
+      if (!rule.condition) {
+        continue;
+      }
+
+      const existingOpenAlert =
+        await this.prisma.alert.findFirst({
+          where: {
+            tenantId,
+            machineName: machine.name,
+            type: rule.type,
+            severity: rule.severity,
+            resolved: false,
+          },
+        });
+
+      if (existingOpenAlert) {
+        continue;
+      }
+
       await this.prisma.alert.create({
         data: {
+          tenantId,
           machineName: machine.name,
-          type: 'HIGH_SPEED',
-          severity: 'MEDIUM',
-          message:
-            'Velocidad operativa elevada',
+          type: rule.type,
+          severity: rule.severity,
+          message: rule.message,
         },
       });
     }

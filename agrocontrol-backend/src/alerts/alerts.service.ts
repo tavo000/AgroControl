@@ -31,7 +31,7 @@ export class AlertsService {
     });
   }
 
-  async create(
+    async create(
     tenantId: number,
     data: {
       machineName: string;
@@ -48,6 +48,21 @@ export class AlertsService {
       message: string;
     },
   ) {
+    const existingOpenAlert =
+      await this.prisma.alert.findFirst({
+        where: {
+          tenantId,
+          machineName: data.machineName,
+          type: data.type,
+          severity: data.severity,
+          resolved: false,
+        },
+      });
+
+    if (existingOpenAlert) {
+      return existingOpenAlert;
+    }
+
     return this.prisma.alert.create({
       data: {
         ...data,

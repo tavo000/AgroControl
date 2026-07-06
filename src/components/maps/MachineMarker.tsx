@@ -93,125 +93,240 @@ export default function MachineMarker({
       position={[machine.lat, machine.lng]}
       icon={createMachineIcon(machine)}
     >
-      <Popup minWidth={260} maxWidth={300}>
+      <Popup minWidth={320} maxWidth={340}>
+  <div
+    style={{
+      width: "310px",
+      fontFamily: "Inter, system-ui, sans-serif",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "14px",
+      }}
+    >
+      <div>
         <div
           style={{
-            width: "260px",
-            fontFamily:
-              "Inter, system-ui, sans-serif",
+            fontSize: "17px",
+            fontWeight: 700,
+            color: "#0f172a",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "10px",
-            }}
-          >
-            <strong
-              style={{
-                display: "block",
-                fontSize: "15px",
-                color: "#111827",
-              }}
-            >
-              {machine.name}
-            </strong>
-
-            <span
-              style={{
-                borderRadius: "999px",
-                padding: "4px 8px",
-                fontSize: "11px",
-                fontWeight: 700,
-                color: status.color,
-                background: status.bg,
-              }}
-            >
-              {status.label}
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gap: "7px",
-              fontSize: "13px",
-              color: "#374151",
-            }}
-          >
-            <div>
-              <strong>Combustible:</strong>{" "}
-              {machine.fuel.toFixed(0)}%
-            </div>
-
-            <div>
-              <strong>Temperatura:</strong>{" "}
-              {machine.temperature.toFixed(0)}°C
-            </div>
-
-            <div>
-              <strong>Velocidad:</strong>{" "}
-              {machine.speed.toFixed(0)} km/h
-            </div>
-
-            <div>
-              <strong>Estado:</strong>{" "}
-              {machine.active
-                ? "Activa"
-                : "Inactiva"}
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: "12px",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "8px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = "/telemetry";
-              }}
-              style={{
-                border: "none",
-                borderRadius: "10px",
-                padding: "8px",
-                background: "#10b981",
-                color: "#ffffff",
-                fontSize: "12px",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Telemetría
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = "/machines";
-              }}
-              style={{
-                border: "none",
-                borderRadius: "10px",
-                padding: "8px",
-                background: "#0f172a",
-                color: "#ffffff",
-                fontSize: "12px",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              Ver máquina
-            </button>
-          </div>
+          {machine.name}
         </div>
-      </Popup>
+
+        <div
+          style={{
+            fontSize: "12px",
+            color: "#64748b",
+          }}
+        >
+          Unidad agrícola en operación
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: status.bg,
+          color: status.color,
+          padding: "6px 12px",
+          borderRadius: "999px",
+          fontSize: "11px",
+          fontWeight: 700,
+        }}
+      >
+        {status.icon} {status.label}
+      </div>
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "10px",
+        marginBottom: "14px",
+      }}
+    >
+      <div
+        style={{
+          background: "#f8fafc",
+          borderRadius: "10px",
+          padding: "10px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#64748b",
+          }}
+        >
+          Combustible
+        </div>
+
+        <div
+          style={{
+            fontSize: "22px",
+            fontWeight: 700,
+            color:
+              machine.fuel < 20
+                ? "#dc2626"
+                : "#16a34a",
+          }}
+        >
+          {machine.fuel.toFixed(0)}%
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#f8fafc",
+          borderRadius: "10px",
+          padding: "10px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#64748b",
+          }}
+        >
+          Temperatura
+        </div>
+
+        <div
+          style={{
+            fontSize: "22px",
+            fontWeight: 700,
+            color:
+              machine.temperature > 78
+                ? "#dc2626"
+                : "#2563eb",
+          }}
+        >
+          {machine.temperature.toFixed(0)}°C
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#f8fafc",
+          borderRadius: "10px",
+          padding: "10px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#64748b",
+          }}
+        >
+          Velocidad
+        </div>
+
+        <div
+          style={{
+            fontSize: "22px",
+            fontWeight: 700,
+            color: "#7c3aed",
+          }}
+        >
+          {machine.speed.toFixed(0)}
+        </div>
+
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#64748b",
+          }}
+        >
+          km/h
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#f8fafc",
+          borderRadius: "10px",
+          padding: "10px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#64748b",
+          }}
+        >
+          Estado
+        </div>
+
+        <div
+          style={{
+            fontSize: "18px",
+            fontWeight: 700,
+            color: machine.active
+              ? "#16a34a"
+              : "#64748b",
+          }}
+        >
+          {machine.active
+            ? "Activa"
+            : "Detenida"}
+        </div>
+      </div>
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          window.location.href =
+            "/telemetry";
+        }}
+        style={{
+          flex: 1,
+          border: "none",
+          borderRadius: "10px",
+          padding: "10px",
+          background: "#10b981",
+          color: "#fff",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Telemetría
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          window.location.href =
+            "/machines";
+        }}
+        style={{
+          flex: 1,
+          border: "none",
+          borderRadius: "10px",
+          padding: "10px",
+          background: "#0f172a",
+          color: "#fff",
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Ver máquina
+      </button>
+    </div>
+  </div>
+</Popup>
     </Marker>
   );
 }

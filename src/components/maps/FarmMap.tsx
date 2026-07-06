@@ -3,6 +3,7 @@ import {
   TileLayer,
   Popup,
   Polygon,
+  Polyline,
   ZoomControl,
 } from "react-leaflet";
 
@@ -133,6 +134,12 @@ export default function FarmMap() {
   const [showCrops, setShowCrops] =
     useState(true);
 
+  const [showRoutes, setShowRoutes] =
+    useState(true);
+
+  const [machineTrails, setMachineTrails] =
+    useState<Record<number, [number, number][]>>({});
+
   useEffect(() => {
     loadMapData();
 
@@ -189,6 +196,31 @@ export default function FarmMap() {
     const data = await response.json();
 
     setMachines(data);
+        setMachineTrails((previousTrails) => {
+      const nextTrails = {
+        ...previousTrails,
+      };
+
+      data.forEach((machine: MapMachine) => {
+  const currentTrail: [number, number][] =
+    nextTrails[machine.id] || [];
+
+  const nextPoint: [number, number] = [
+    machine.lat,
+    machine.lng,
+  ];
+
+  const updatedTrail: [number, number][] = [
+    ...currentTrail,
+    nextPoint,
+  ];
+
+  nextTrails[machine.id] =
+    updatedTrail.slice(-20);
+});
+
+      return nextTrails;
+    });
   };
 
 
@@ -245,6 +277,17 @@ export default function FarmMap() {
     🌾 Cultivos
   </label>
 
+    <label className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1 text-xs">
+    <input
+      type="checkbox"
+      checked={showRoutes}
+      onChange={() =>
+        setShowRoutes(!showRoutes)
+      }
+    />
+    🛣 Rutas
+  </label>
+
 </div>
 
 <MapContainer
@@ -263,6 +306,22 @@ export default function FarmMap() {
       />
 
       <ZoomControl position="topright" />
+
+            {showRoutes &&
+        Object.entries(machineTrails).map(
+          ([machineId, trail]) =>
+            trail.length > 1 ? (
+              <Polyline
+                key={machineId}
+                positions={trail}
+                pathOptions={{
+                  color: "#22c55e",
+                  weight: 4,
+                  opacity: 0.75,
+                }}
+              />
+            ) : null,
+        )}
 
 
             {showPlots && visiblePlots.map((plot, index) => {

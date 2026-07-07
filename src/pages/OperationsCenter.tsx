@@ -44,6 +44,9 @@ export default function OperationsCenter() {
   const [overview, setOverview] =
     useState<OperationsOverview | null>(null);
 
+  const [selectedMachineName, setSelectedMachineName] =
+  useState<string | null>(null);
+
   useEffect(() => {
     loadOverview();
   }, []);
@@ -214,7 +217,7 @@ export default function OperationsCenter() {
   </div>
 
   <div className="h-80">
-    <FarmMap />
+    <FarmMap selectedMachineName={selectedMachineName} />
   </div>
 </div>
         </div>
@@ -262,7 +265,9 @@ export default function OperationsCenter() {
                 {overview?.machines.offline ?? 0}
               </h3>
             </div>
-            <LiveEventsPanel />
+            <LiveEventsPanel
+              onSelectMachine={setSelectedMachineName}
+            />
           </div>
           
         </div>

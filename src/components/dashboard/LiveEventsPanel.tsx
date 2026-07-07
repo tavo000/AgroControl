@@ -23,6 +23,7 @@ interface LiveEvent {
   time: string;
   title: string;
   description: string;
+  machineName?: string;
   type: "machine" | "alert" | "success" | "telemetry";
 }
 
@@ -40,6 +41,7 @@ function getEventStyle(type: LiveEvent["type"]) {
       bg: "bg-red-500/10",
       color: "text-red-400",
       border: "border-red-500/20",
+      highlight: "ring-red-500/40",
     };
   }
 
@@ -49,6 +51,7 @@ function getEventStyle(type: LiveEvent["type"]) {
       bg: "bg-emerald-500/10",
       color: "text-emerald-400",
       border: "border-emerald-500/20",
+      highlight: "ring-emerald-500/40",
     };
   }
 
@@ -58,6 +61,7 @@ function getEventStyle(type: LiveEvent["type"]) {
       bg: "bg-cyan-500/10",
       color: "text-cyan-400",
       border: "border-cyan-500/20",
+      highlight: "ring-cyan-500/40",
     };
   }
 
@@ -66,14 +70,22 @@ function getEventStyle(type: LiveEvent["type"]) {
     bg: "bg-violet-500/10",
     color: "text-violet-400",
     border: "border-violet-500/20",
+    highlight: "ring-violet-500/40",
   };
 }
 
-export default function LiveEventsPanel() {
-  const [events, setEvents] = useState<LiveEvent[]>([]);
+interface LiveEventsPanelProps {
+  onSelectMachine?: (machineName: string) => void;
+}
 
-  const [newEventsCount, setNewEventsCount] =
-  useState(0);
+export default function LiveEventsPanel({
+  onSelectMachine,
+}: LiveEventsPanelProps) {
+
+  const [events, setEvents] = useState<LiveEvent[]>([]);
+  const [newEventsCount, setNewEventsCount] = useState(0);
+  const [highlightedEventIds, setHighlightedEventIds] =
+    useState<number[]>([]);
 
   useEffect(() => {
     loadEvents();
@@ -93,24 +105,25 @@ export default function LiveEventsPanel() {
 
       const sortedAlerts = [...alerts]
         .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime(),
-            )
-          .slice(0, 20);
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime(),
+        )
+        .slice(0, 20);
 
-const alertEvents: LiveEvent[] = sortedAlerts.map(
-  (alert) => ({
-    id: alert.id,
-    time: formatEventTime(alert.createdAt),
-    title:
-      alert.severity === "CRITICAL"
-        ? `Alerta crítica - ${alert.machineName}`
-        : `Alerta ${alert.severity.toLowerCase()} - ${alert.machineName}`,
-    description: alert.message,
-    type: "alert",
-  }),
-);
+      const alertEvents: LiveEvent[] = sortedAlerts.map(
+        (alert) => ({
+          id: alert.id,
+          time: formatEventTime(alert.createdAt),
+          title:
+            alert.severity === "CRITICAL"
+              ? `Alerta crítica - ${alert.machineName}`
+              : `Alerta ${alert.severity.toLowerCase()} - ${alert.machineName}`,
+          description: alert.message,
+              machineName: alert.machineName,
+              type: "alert",
+        }),
+      );
 
       const baseEvents: LiveEvent[] = [
         {
@@ -132,25 +145,36 @@ const alertEvents: LiveEvent[] = sortedAlerts.map(
       ];
 
       setEvents((previousEvents) => {
-  const previousIds = new Set(
-    previousEvents.map((event) => event.id),
-  );
+        const previousIds = new Set(
+          previousEvents.map((event) => event.id),
+        );
 
-  const nextEvents = [
-    ...alertEvents,
-    ...baseEvents,
-  ];
+        const nextEvents = [
+          ...alertEvents,
+          ...baseEvents,
+        ];
 
-  const newCount = nextEvents.filter(
-    (event) => !previousIds.has(event.id),
-  ).length;
+        const newIds = nextEvents
+          .filter(
+            (event) => !previousIds.has(event.id),
+          )
+          .map((event) => event.id);
 
-  if (previousEvents.length > 0 && newCount > 0) {
-    setNewEventsCount(newCount);
-  }
+        if (
+          previousEvents.length > 0 &&
+          newIds.length > 0
+        ) {
+          setNewEventsCount(newIds.length);
+          setHighlightedEventIds(newIds);
 
-  return nextEvents.slice(0, 20);
-});
+          window.setTimeout(() => {
+            setHighlightedEventIds([]);
+            setNewEventsCount(0);
+          }, 2500);
+        }
+
+        return nextEvents.slice(0, 20);
+      });
     } catch (error) {
       console.error(error);
     }
@@ -164,18 +188,18 @@ const alertEvents: LiveEvent[] = sortedAlerts.map(
             Eventos en vivo
           </h2>
 
-        <div className="flex items-center gap-2">
-          {newEventsCount > 0 && (
-          <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
-          {newEventsCount} nuevos
-          </span>
-          )}
+          <div className="flex items-center gap-2">
+            {newEventsCount > 0 && (
+              <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+                {newEventsCount} nuevos
+              </span>
+            )}
 
-          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-             En línea
-          </span>
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+              En línea
+            </span>
+          </div>
         </div>
-      </div>
 
         <p className="text-sm text-slate-400 mt-1">
           Línea temporal operativa del Centro de Operaciones.
@@ -187,10 +211,24 @@ const alertEvents: LiveEvent[] = sortedAlerts.map(
           const style = getEventStyle(event.type);
           const Icon = style.icon;
 
+          const isHighlighted =
+            highlightedEventIds.includes(event.id);
+
           return (
             <div
               key={event.id}
-              className={`rounded-xl border ${style.border} bg-slate-950 p-4`}
+              onClick={() => {
+                if (event.machineName) {
+                  onSelectMachine?.(event.machineName);
+                    }
+                }}
+                className={`rounded-xl border ${style.border} bg-slate-950 p-4 transition-all duration-500 ${
+                  event.machineName ? "cursor-pointer hover:bg-slate-900" : ""
+              } ${
+                isHighlighted
+                  ? `ring-2 ${style.highlight} scale-[1.01]`
+                  : ""
+              }`}
             >
               <div className="flex gap-3">
                 <div

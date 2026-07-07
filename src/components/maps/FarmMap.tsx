@@ -6,6 +6,7 @@ import {
   Polyline,
   Marker,
   ZoomControl,
+  useMap,
 } from "react-leaflet";
 
 import { useEffect, useRef, useState } from "react";
@@ -64,6 +65,10 @@ interface Harvest {
   unit: string;
 }
 
+interface FarmMapProps {
+  selectedMachineName?: string | null;
+}
+
 interface OpenAlert {
   id: number;
   machineName: string;
@@ -94,6 +99,32 @@ const basePolygons: [number, number][][] = [
   ],
 ];
 
+function FocusMachineOnMap({
+  machines,
+  selectedMachineName,
+}: {
+  machines: MapMachine[];
+  selectedMachineName?: string | null;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!selectedMachineName) return;
+
+    const machine = machines.find(
+      (item) => item.name === selectedMachineName,
+    );
+
+    if (!machine) return;
+
+    map.flyTo([machine.lat, machine.lng], 15, {
+      duration: 1,
+    });
+  }, [map, machines, selectedMachineName]);
+
+  return null;
+}
+
 function getCropColor(cropName?: string) {
   if (!cropName) return "#64748b";
 
@@ -123,7 +154,9 @@ function getCropColor(cropName?: string) {
   return "#22c55e";
 }
 
-export default function FarmMap() {
+export default function FarmMap({
+  selectedMachineName,
+}: FarmMapProps) {
 
   const [animatedMachines, setAnimatedMachines] =
     useState<MapMachine[]>([]);
@@ -392,6 +425,11 @@ export default function FarmMap() {
       />
 
       <ZoomControl position="topright" />
+
+      <FocusMachineOnMap
+        machines={animatedMachines}
+        selectedMachineName={selectedMachineName}
+      />
 
             {showRoutes &&
         Object.entries(machineTrails).map(

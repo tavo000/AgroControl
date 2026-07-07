@@ -12,6 +12,7 @@ import {
 
 import { getOperationsCenterOverview } from "../services/machineService";
 import FarmMap from "../components/maps/FarmMap";
+import LiveEventsPanel from "../components/dashboard/LiveEventsPanel";
 
 interface OperationsOverview {
   planning: {
@@ -261,7 +262,9 @@ export default function OperationsCenter() {
                 {overview?.machines.offline ?? 0}
               </h3>
             </div>
+            <LiveEventsPanel />
           </div>
+          
         </div>
       </div>
     </div>

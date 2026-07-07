@@ -4,18 +4,21 @@ import {
   Popup,
   Polygon,
   Polyline,
+  Marker,
   ZoomControl,
 } from "react-leaflet";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   getCrops,
   getHarvests,
   getPlots,
+  getOpenAlerts,
 } from "../../services/machineService";
 
 import MachineMarker from "./MachineMarker";
+import AlertMarker from "./AlertMarker";
 
 interface MapMachine {
   id: number;
@@ -59,6 +62,15 @@ interface Harvest {
   harvestedArea: number;
   yieldPerHectare: number;
   unit: string;
+}
+
+interface OpenAlert {
+  id: number;
+  machineName: string;
+  type: string;
+  severity: string;
+  message: string;
+  createdAt: string;
 }
 
 const basePolygons: [number, number][][] = [
@@ -113,8 +125,11 @@ function getCropColor(cropName?: string) {
 
 export default function FarmMap() {
 
-  const [machines, setMachines] =
+  const [animatedMachines, setAnimatedMachines] =
     useState<MapMachine[]>([]);
+
+  const animationRef =
+    useRef<number | null>(null);
 
   const [plots, setPlots] =
     useState<Plot[]>([]);
@@ -140,6 +155,9 @@ export default function FarmMap() {
   const [machineTrails, setMachineTrails] =
     useState<Record<number, [number, number][]>>({});
 
+  const [openAlerts, setOpenAlerts] =
+  useState<OpenAlert[]>([]);
+
   useEffect(() => {
     loadMapData();
 
@@ -154,6 +172,7 @@ export default function FarmMap() {
     await Promise.all([
       loadMachinesMap(),
       loadAgriculturalData(),
+      loadOpenAlerts(),
     ]);
   };
 
@@ -177,6 +196,73 @@ export default function FarmMap() {
     }
   };
 
+    const animateMachinePositions = (
+    targetMachines: MapMachine[],
+  ) => {
+    if (animatedMachines.length === 0) {
+      setAnimatedMachines(targetMachines);
+      return;
+    }
+
+    if (animationRef.current) {
+      window.clearInterval(animationRef.current);
+    }
+
+    const startMachines = animatedMachines;
+
+    const steps = 20;
+    let currentStep = 0;
+
+    animationRef.current = window.setInterval(() => {
+      currentStep += 1;
+
+      const progress = currentStep / steps;
+
+      const nextMachines = targetMachines.map(
+        (targetMachine) => {
+          const startMachine = startMachines.find(
+            (item) => item.id === targetMachine.id,
+          );
+
+          if (!startMachine) {
+            return targetMachine;
+          }
+
+          return {
+            ...targetMachine,
+            lat:
+              startMachine.lat +
+              (targetMachine.lat - startMachine.lat) *
+                progress,
+            lng:
+              startMachine.lng +
+              (targetMachine.lng - startMachine.lng) *
+                progress,
+          };
+        },
+      );
+
+      setAnimatedMachines(nextMachines);
+
+      if (currentStep >= steps) {
+        window.clearInterval(animationRef.current!);
+        animationRef.current = null;
+        setAnimatedMachines(targetMachines);
+      }
+    }, 50);
+  };
+
+  const loadOpenAlerts = async () => {
+  try {
+    const alerts =
+      await getOpenAlerts();
+
+    setOpenAlerts(alerts);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
   const loadMachinesMap = async () => {
     const token = localStorage.getItem(
       "agrocontrol_token",
@@ -195,7 +281,7 @@ export default function FarmMap() {
 
     const data = await response.json();
 
-    setMachines(data);
+        animateMachinePositions(data);
         setMachineTrails((previousTrails) => {
       const nextTrails = {
         ...previousTrails,
@@ -315,13 +401,38 @@ export default function FarmMap() {
                 key={machineId}
                 positions={trail}
                 pathOptions={{
-                  color: "#22c55e",
-                  weight: 4,
-                  opacity: 0.75,
-                }}
+                  color: "#16a34a",
+                  weight: 6,
+                  opacity: 0.95,
+            }}
               />
             ) : null,
         )}
+
+              {openAlerts.map((alert) => {
+        const relatedMachine =
+          animatedMachines.find(
+            (machine) =>
+              machine.name === alert.machineName,
+          );
+
+        if (!relatedMachine) {
+          return null;
+        }
+
+        const alertPosition: [number, number] = [
+          relatedMachine.lat + 0.00022,
+          relatedMachine.lng + 0.00018,
+    ];
+
+        return (
+              <AlertMarker
+                key={alert.id}
+                alert={alert}
+                position={alertPosition}
+              />
+              );
+      })}
 
 
             {showPlots && visiblePlots.map((plot, index) => {
@@ -462,7 +573,7 @@ export default function FarmMap() {
       })}
 
             {showMachines &&
-        machines.map((machine) => (
+            animatedMachines.map((machine) => (
           <MachineMarker
             key={machine.id}
             machine={machine}

@@ -1075,3 +1075,20 @@ export async function getOperationsCenterOverview() {
 
   return response.json();
 }
+
+export async function getOpenAlerts() {
+  const response = await fetch(
+    "http://localhost:4000/alerts/open",
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Error al obtener alertas abiertas",
+    );
+  }
+
+  return response.json();
+}

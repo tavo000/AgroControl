@@ -67,6 +67,7 @@ interface Harvest {
 
 interface FarmMapProps {
   selectedMachineName?: string | null;
+  onSelectMachine?: (machineName: string) => void;
 }
 
 interface OpenAlert {
@@ -156,6 +157,7 @@ function getCropColor(cropName?: string) {
 
 export default function FarmMap({
   selectedMachineName,
+  onSelectMachine,
 }: FarmMapProps) {
 
   const [animatedMachines, setAnimatedMachines] =
@@ -612,10 +614,14 @@ export default function FarmMap({
 
             {showMachines &&
             animatedMachines.map((machine) => (
-          <MachineMarker
-            key={machine.id}
-            machine={machine}
-          />
+            <MachineMarker
+              key={machine.id}
+              machine={machine}
+              isSelected={
+                selectedMachineName === machine.name
+              }
+               onSelectMachine={onSelectMachine}
+            />
         ))}
     </MapContainer>
     </div>

@@ -217,7 +217,10 @@ export default function OperationsCenter() {
   </div>
 
   <div className="h-80">
-    <FarmMap selectedMachineName={selectedMachineName} />
+    <FarmMap
+      selectedMachineName={selectedMachineName}
+      onSelectMachine={setSelectedMachineName}
+    />
   </div>
 </div>
         </div>
@@ -267,6 +270,7 @@ export default function OperationsCenter() {
             </div>
             <LiveEventsPanel
               onSelectMachine={setSelectedMachineName}
+              selectedMachineName={selectedMachineName}
             />
           </div>
           

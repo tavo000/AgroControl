@@ -76,10 +76,12 @@ function getEventStyle(type: LiveEvent["type"]) {
 
 interface LiveEventsPanelProps {
   onSelectMachine?: (machineName: string) => void;
+  selectedMachineName?: string | null;
 }
 
 export default function LiveEventsPanel({
   onSelectMachine,
+  selectedMachineName,
 }: LiveEventsPanelProps) {
 
   const [events, setEvents] = useState<LiveEvent[]>([]);
@@ -206,13 +208,22 @@ export default function LiveEventsPanel({
         </p>
       </div>
 
-      <div className="mt-4 max-h-[620px] overflow-y-auto pr-2 space-y-4">
+      <div className="mt-4 max-h-[620px] overflow-y-auto px-1 pr-2 space-y-4">
         {events.map((event) => {
           const style = getEventStyle(event.type);
           const Icon = style.icon;
 
           const isHighlighted =
             highlightedEventIds.includes(event.id);
+
+            const firstSelectedMachineEventId =
+              events.find(
+              (item) =>
+              item.machineName === selectedMachineName,
+              )?.id;
+
+          const isSelectedMachineEvent =
+            event.id === firstSelectedMachineEventId;
 
           return (
             <div
@@ -225,7 +236,9 @@ export default function LiveEventsPanel({
                 className={`rounded-xl border ${style.border} bg-slate-950 p-4 transition-all duration-500 ${
                   event.machineName ? "cursor-pointer hover:bg-slate-900" : ""
               } ${
-                isHighlighted
+                isSelectedMachineEvent
+                  ? "border-emerald-500/40 bg-emerald-500/5 shadow-[0_0_18px_rgba(52,211,153,0.12)]"
+                  : isHighlighted
                   ? `ring-2 ${style.highlight} scale-[1.01]`
                   : ""
               }`}

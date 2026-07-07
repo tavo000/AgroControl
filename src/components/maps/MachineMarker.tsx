@@ -13,6 +13,8 @@ interface MachineMarkerProps {
     speed: number;
     active: boolean;
   };
+  isSelected?: boolean;
+  onSelectMachine?: (machineName: string) => void;
 }
 
 function getMachineStatus(machine: MachineMarkerProps["machine"]) {
@@ -53,6 +55,7 @@ function getMachineStatus(machine: MachineMarkerProps["machine"]) {
 
 function createMachineIcon(
   machine: MachineMarkerProps["machine"],
+  isSelected?: boolean,
 ) {
   const status = getMachineStatus(machine);
 
@@ -69,7 +72,11 @@ function createMachineIcon(
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 10px 24px rgba(0,0,0,.35);
+          box-shadow: ${
+            isSelected
+              ? "0 0 0 8px rgba(34,197,94,.22), 0 0 28px rgba(34,197,94,.75)"
+              : "0 10px 24px rgba(0,0,0,.35)"
+            };
           color: white;
           font-size: 20px;
         "
@@ -85,14 +92,21 @@ function createMachineIcon(
 
 export default function MachineMarker({
   machine,
+  isSelected = false,
+  onSelectMachine,
 }: MachineMarkerProps) {
   const status = getMachineStatus(machine);  
 
   return (
     <Marker
-      position={[machine.lat, machine.lng]}
-      icon={createMachineIcon(machine)}
-    >
+  position={[machine.lat, machine.lng]}
+  icon={createMachineIcon(machine, isSelected)}
+  eventHandlers={{
+    click: () => {
+      onSelectMachine?.(machine.name);
+    },
+  }}
+>
       <Popup minWidth={320} maxWidth={340}>
         <div
           style={{

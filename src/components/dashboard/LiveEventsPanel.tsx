@@ -1,9 +1,22 @@
+import { useEffect, useState } from "react";
+
 import {
   AlertTriangle,
   CheckCircle2,
   RadioTower,
   Tractor,
 } from "lucide-react";
+
+import { getOpenAlerts } from "../../services/machineService";
+
+interface OpenAlert {
+  id: number;
+  machineName: string;
+  type: string;
+  severity: string;
+  message: string;
+  createdAt: string;
+}
 
 interface LiveEvent {
   id: number;
@@ -13,40 +26,12 @@ interface LiveEvent {
   type: "machine" | "alert" | "success" | "telemetry";
 }
 
-const events: LiveEvent[] = [
-  {
-    id: 1,
-    time: "Ahora",
-    title: "Centro operativo activo",
-    description:
-      "Monitoreo GIS, maquinaria y alertas en tiempo real.",
-    type: "telemetry",
-  },
-  {
-    id: 2,
-    time: "Hace 1 min",
-    title: "Tractor Tenant 1 en operación",
-    description:
-      "La unidad se encuentra transmitiendo posición y telemetría.",
-    type: "machine",
-  },
-  {
-    id: 3,
-    time: "Hace 3 min",
-    title: "Alerta operativa detectada",
-    description:
-      "Evento vinculado a maquinaria activa dentro del mapa GIS.",
-    type: "alert",
-  },
-  {
-    id: 4,
-    time: "Hoy",
-    title: "Mapa GIS sincronizado",
-    description:
-      "Capas de maquinaria, lotes, cultivos y rutas disponibles.",
-    type: "success",
-  },
-];
+function formatEventTime(date: string) {
+  return new Date(date).toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function getEventStyle(type: LiveEvent["type"]) {
   if (type === "alert") {
@@ -85,19 +70,119 @@ function getEventStyle(type: LiveEvent["type"]) {
 }
 
 export default function LiveEventsPanel() {
+  const [events, setEvents] = useState<LiveEvent[]>([]);
+
+  const [newEventsCount, setNewEventsCount] =
+  useState(0);
+
+  useEffect(() => {
+    loadEvents();
+
+    const interval = window.setInterval(() => {
+      loadEvents();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const alerts: OpenAlert[] = await getOpenAlerts();
+
+      const sortedAlerts = [...alerts]
+        .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime(),
+            )
+          .slice(0, 20);
+
+const alertEvents: LiveEvent[] = sortedAlerts.map(
+  (alert) => ({
+    id: alert.id,
+    time: formatEventTime(alert.createdAt),
+    title:
+      alert.severity === "CRITICAL"
+        ? `Alerta crítica - ${alert.machineName}`
+        : `Alerta ${alert.severity.toLowerCase()} - ${alert.machineName}`,
+    description: alert.message,
+    type: "alert",
+  }),
+);
+
+      const baseEvents: LiveEvent[] = [
+        {
+          id: -1,
+          time: "Ahora",
+          title: "Centro operativo activo",
+          description:
+            "Monitoreo GIS, maquinaria y alertas en tiempo real.",
+          type: "telemetry",
+        },
+        {
+          id: -2,
+          time: "Activo",
+          title: "Mapa GIS sincronizado",
+          description:
+            "Capas de maquinaria, lotes, cultivos y rutas disponibles.",
+          type: "success",
+        },
+      ];
+
+      setEvents((previousEvents) => {
+  const previousIds = new Set(
+    previousEvents.map((event) => event.id),
+  );
+
+  const nextEvents = [
+    ...alertEvents,
+    ...baseEvents,
+  ];
+
+  const newCount = nextEvents.filter(
+    (event) => !previousIds.has(event.id),
+  ).length;
+
+  if (previousEvents.length > 0 && newCount > 0) {
+    setNewEventsCount(newCount);
+  }
+
+  return nextEvents.slice(0, 20);
+});
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold">
-          Eventos en vivo
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold">
+            Eventos en vivo
+          </h2>
+
+        <div className="flex items-center gap-2">
+          {newEventsCount > 0 && (
+          <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
+          {newEventsCount} nuevos
+          </span>
+          )}
+
+          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+             En línea
+          </span>
+        </div>
+      </div>
 
         <p className="text-sm text-slate-400 mt-1">
           Línea temporal operativa del Centro de Operaciones.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="mt-4 max-h-[620px] overflow-y-auto pr-2 space-y-4">
         {events.map((event) => {
           const style = getEventStyle(event.type);
           const Icon = style.icon;

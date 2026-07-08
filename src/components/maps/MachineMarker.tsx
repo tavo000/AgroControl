@@ -1,4 +1,5 @@
 import { Marker, Popup } from "react-leaflet";
+import "../../styles/agrocontrol-map.css";
 
 import L from "leaflet";
 
@@ -59,10 +60,15 @@ function createMachineIcon(
 ) {
   const status = getMachineStatus(machine);
 
+  const pulseClass = isSelected
+    ? "agrocontrol-machine-pulse"
+    : "";
+
   return L.divIcon({
     className: "",
     html: `
       <div
+        class="agrocontrol-machine-icon ${pulseClass}"
         style="
           width: 42px;
           height: 42px;
@@ -74,9 +80,9 @@ function createMachineIcon(
           justify-content: center;
           box-shadow: ${
             isSelected
-              ? "0 0 0 8px rgba(34,197,94,.22), 0 0 28px rgba(34,197,94,.75)"
+              ? "0 0 28px rgba(34,197,94,.75)"
               : "0 10px 24px rgba(0,0,0,.35)"
-            };
+          };
           color: white;
           font-size: 20px;
         "
@@ -95,18 +101,18 @@ export default function MachineMarker({
   isSelected = false,
   onSelectMachine,
 }: MachineMarkerProps) {
-  const status = getMachineStatus(machine);  
+  const status = getMachineStatus(machine);
 
   return (
     <Marker
-  position={[machine.lat, machine.lng]}
-  icon={createMachineIcon(machine, isSelected)}
-  eventHandlers={{
-    click: () => {
-      onSelectMachine?.(machine.name);
-    },
-  }}
->
+      position={[machine.lat, machine.lng]}
+      icon={createMachineIcon(machine, isSelected)}
+      eventHandlers={{
+        click: () => {
+          onSelectMachine?.(machine.name);
+        },
+      }}
+    >
       <Popup minWidth={320} maxWidth={340}>
         <div
           style={{

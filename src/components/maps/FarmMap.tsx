@@ -109,8 +109,13 @@ function FocusMachineOnMap({
 }) {
   const map = useMap();
 
+  const initializedRef = useRef(false);
+
   useEffect(() => {
-    if (!selectedMachineName) return;
+    if (!selectedMachineName) {
+      initializedRef.current = false;
+      return;
+    }
 
     const machine = machines.find(
       (item) => item.name === selectedMachineName,
@@ -118,10 +123,28 @@ function FocusMachineOnMap({
 
     if (!machine) return;
 
-    map.flyTo([machine.lat, machine.lng], 15, {
-      duration: 1,
-    });
-  }, [map, machines, selectedMachineName]);
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+
+      map.flyTo(
+        [machine.lat, machine.lng],
+        15,
+        {
+          duration: 1.2,
+        },
+      );
+
+      return;
+    }
+
+    map.panTo(
+      [machine.lat, machine.lng],
+      {
+        animate: true,
+        duration: 0.6,
+      },
+    );
+  }, [machines, selectedMachineName, map]);
 
   return null;
 }

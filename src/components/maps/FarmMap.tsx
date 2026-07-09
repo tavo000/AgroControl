@@ -4,12 +4,12 @@ import {
   Popup,
   Polygon,
   Polyline,
-  Marker,
   ZoomControl,
   useMap,
 } from "react-leaflet";
 
 import { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 
 import {
   getCrops,
@@ -69,6 +69,11 @@ interface Harvest {
 interface FarmMapProps {
   selectedMachineName?: string | null;
   onSelectMachine?: (machineName: string) => void;
+}
+
+interface MachinesUpdateEvent {
+  type: "created" | "updated" | "deleted";
+  machine?: MapMachine;
 }
 
 interface OpenAlert {
@@ -218,14 +223,50 @@ export default function FarmMap({
   useState<OpenAlert[]>([]);
 
   useEffect(() => {
-    loadMapData();
+  loadMapData();
 
-    const interval = setInterval(() => {
+  const interval = setInterval(() => {
+    loadMachinesMap();
+  }, 3000);
+
+  const socket = io("http://localhost:4000");
+
+  socket.on("machines:update", (event: MachinesUpdateEvent) => {
+    if (!event.machine) {
       loadMachinesMap();
-    }, 3000);
+      return;
+    }
 
-    return () => clearInterval(interval);
-  }, []);
+    setAnimatedMachines((previousMachines) => {
+      const exists = previousMachines.some(
+        (machine) => machine.id === event.machine?.id,
+      );
+
+      if (!exists) {
+        return [
+          ...previousMachines,
+          event.machine as MapMachine,
+        ];
+      }
+
+      return previousMachines.map((machine) =>
+        machine.id === event.machine?.id
+          ? {
+              ...machine,
+              ...event.machine,
+            }
+          : machine,
+      );
+    });
+
+    loadMachinesMap();
+  });
+
+  return () => {
+    clearInterval(interval);
+    socket.disconnect();
+  };
+}, []);
 
   const loadMapData = async () => {
     await Promise.all([

@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { MachinesGateway } from './machines.gateway';
 
 @Injectable()
 export class MachinesService {
   constructor(
-    private prisma: PrismaService,
-  ) {}
+  private prisma: PrismaService,
+  private gateway: MachinesGateway,
+) {}
 
   async findAll(tenantId: number) {
     return this.prisma.machine.findMany({
@@ -53,12 +55,20 @@ export class MachinesService {
       active: boolean;
     },
   ) {
-    return this.prisma.machine.create({
-      data: {
-        ...data,
-        tenantId,
-      },
-    });
+    const machine =
+  await this.prisma.machine.create({
+    data: {
+      ...data,
+      tenantId,
+    },
+  });
+
+this.gateway.emitMachinesUpdate({
+  type: 'created',
+  machine,
+});
+
+return machine;
   }
 
   async remove(

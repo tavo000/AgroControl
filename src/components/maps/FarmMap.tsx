@@ -237,33 +237,42 @@ export default function FarmMap({
       return;
     }
 
-    setAnimatedMachines((previousMachines) => {
-      const exists = previousMachines.some(
-        (machine) => machine.id === event.machine?.id,
-      );
-
-      if (!exists) {
-        return [
-          ...previousMachines,
-          event.machine as MapMachine,
-        ];
-      }
-
-      return previousMachines.map((machine) =>
-        machine.id === event.machine?.id
-          ? {
-              ...machine,
-              ...event.machine,
-            }
-          : machine,
-      );
-    });
-
-    loadMachinesMap();
+    applyMachineUpdate(event.machine);
   });
 
-  return () => {
+    socket.on(
+    "machines:updated",
+    (event: { machine: MapMachine }) => {
+      applyMachineUpdate(event.machine);
+    },
+  );
+
+    socket.on(
+    "machines:deleted",
+    (event: { id: number }) => {
+      setAnimatedMachines((previous) =>
+        previous.filter(
+          (machine) => machine.id !== event.id,
+        ),
+      );
+
+      setMachineTrails((previous) => {
+        const next = { ...previous };
+
+        delete next[event.id];
+
+        return next;
+      });
+    },
+  );
+
+    return () => {
     clearInterval(interval);
+
+    socket.off("machines:update");
+    socket.off("machines:updated");
+    socket.off("machines:deleted");
+
     socket.disconnect();
   };
 }, []);
@@ -351,6 +360,35 @@ export default function FarmMap({
       }
     }, 50);
   };
+
+  const applyMachineUpdate = (
+  machine: MapMachine,
+) => {
+  animateMachinePositions([
+    ...animatedMachines.filter(
+      (item) => item.id !== machine.id,
+    ),
+    machine,
+  ]);
+
+  setMachineTrails((previousTrails) => {
+    const currentTrail =
+      previousTrails[machine.id] || [];
+
+    const nextPoint: [number, number] = [
+      machine.lat,
+      machine.lng,
+    ];
+
+    return {
+      ...previousTrails,
+      [machine.id]: [
+        ...currentTrail,
+        nextPoint,
+      ].slice(-20),
+    };
+  });
+};
 
   const loadOpenAlerts = async () => {
   try {

@@ -13,9 +13,49 @@ interface MachineMarkerProps {
     temperature: number;
     speed: number;
     active: boolean;
+    updatedAt?: string;
   };
   isSelected?: boolean;
   onSelectMachine?: (machineName: string) => void;
+}
+
+function getConnectionStatus(
+  machine: MachineMarkerProps["machine"],
+) {
+  if (!machine.active) {
+    return {
+      label: "Offline",
+      color: "#64748b",
+      className: "agrocontrol-machine-offline",
+    };
+  }
+
+  if (!machine.updatedAt) {
+    return {
+      label: "Sin datos",
+      color: "#f59e0b",
+      className: "agrocontrol-machine-no-data",
+};
+  }
+
+  const seconds =
+    (Date.now() -
+      new Date(machine.updatedAt).getTime()) /
+    1000;
+
+  if (seconds > 20) {
+    return {
+      label: "Sin señal",
+      color: "#f97316",
+      className: "agrocontrol-machine-no-signal",
+      };
+  }
+
+  return {
+    label: "Online",
+    color: "#22c55e",
+    className: "agrocontrol-machine-online",
+};
 }
 
 function getMachineStatus(machine: MachineMarkerProps["machine"]) {
@@ -59,6 +99,8 @@ function createMachineIcon(
   isSelected?: boolean,
 ) {
   const status = getMachineStatus(machine);
+  const connection =
+  getConnectionStatus(machine);
 
   const pulseClass = isSelected
     ? "agrocontrol-machine-pulse"
@@ -68,13 +110,13 @@ function createMachineIcon(
     className: "",
     html: `
       <div
-        class="agrocontrol-machine-icon ${pulseClass}"
+        class="agrocontrol-machine-icon ${connection.className} ${pulseClass}"
         style="
           width: 42px;
           height: 42px;
           border-radius: 999px;
           background: ${status.bg};
-          border: 2px solid ${status.color};
+          border: 2px solid ${connection.color};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -102,6 +144,8 @@ export default function MachineMarker({
   onSelectMachine,
 }: MachineMarkerProps) {
   const status = getMachineStatus(machine);
+  const connection =
+  getConnectionStatus(machine);
 
   return (
     <Marker
@@ -122,47 +166,39 @@ export default function MachineMarker({
           }}
         >
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "14px",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: "17px",
-                  fontWeight: 700,
-                  color: "#0f172a",
-                }}
-              >
-                {machine.name}
-              </div>
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    alignItems: "flex-end",
+  }}
+>
+  <div
+    style={{
+      background: status.bg,
+      color: status.color,
+      padding: "6px 12px",
+      borderRadius: "999px",
+      fontSize: "11px",
+      fontWeight: 700,
+    }}
+  >
+    {status.icon} {status.label}
+  </div>
 
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "#64748b",
-                }}
-              >
-                Unidad agrícola en operación
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: status.bg,
-                color: status.color,
-                padding: "6px 12px",
-                borderRadius: "999px",
-                fontSize: "11px",
-                fontWeight: 700,
-              }}
-            >
-              {status.icon} {status.label}
-            </div>
-          </div>
+  <div
+    style={{
+      background: connection.color,
+      color: "#ffffff",
+      padding: "4px 10px",
+      borderRadius: "999px",
+      fontSize: "10px",
+      fontWeight: 700,
+    }}
+  >
+    {connection.label}
+  </div>
+</div>
 
           <div
             style={{

@@ -29,3 +29,19 @@
       0 0 28px rgba(34, 197, 94, 0.75);
   }
 }
+
+.agrocontrol-machine-online {
+  filter: saturate(1.15);
+}
+
+.agrocontrol-machine-offline {
+  filter: grayscale(1) opacity(0.75);
+}
+
+.agrocontrol-machine-no-data {
+  filter: sepia(0.3) saturate(1.2);
+}
+
+.agrocontrol-machine-no-signal {
+  filter: sepia(0.6) saturate(1.4);
+}

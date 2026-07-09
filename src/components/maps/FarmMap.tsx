@@ -30,6 +30,7 @@ interface MapMachine {
   temperature: number;
   speed: number;
   active: boolean;
+  updatedAt?: string;
 }
 
 interface Plot {

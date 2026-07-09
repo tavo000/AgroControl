@@ -216,7 +216,7 @@ export default function OperationsCenter() {
     </div>
   </div>
 
-  <div className="h-80">
+  <div className="h-[620px]">
     <FarmMap
       selectedMachineName={selectedMachineName}
       onSelectMachine={setSelectedMachineName}
